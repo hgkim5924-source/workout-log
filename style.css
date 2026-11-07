@@ -332,3 +332,14 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
   .exercise-visuals .movement-gallery.single img{min-height:155px;max-height:210px}
   .detail-anatomy .muscle-map.external-anatomy{max-height:220px}
 }
+
+
+/* v20: two full-size Everkinetic movement illustrations fill the exercise visual panel */
+.exercise-visuals{display:block;width:100%;min-width:0}
+.exercise-visuals.movement-gallery.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0;align-items:stretch}
+.exercise-visuals.movement-gallery.pair figure{margin:0;min-width:0;overflow:hidden;border:1px solid #34443a;border-radius:12px;background:#f7f7f5;display:flex;align-items:center;justify-content:center;min-height:220px}
+.exercise-visuals.movement-gallery.pair img{display:block;width:100%;height:clamp(190px,28vw,340px);max-height:none;object-fit:contain;background:#f7f7f5}
+.exercise-visuals.movement-gallery.pair figure.image-failed{display:none}
+.exercise-visuals .detail-anatomy{display:none}
+.exercise-detail .detail-art{width:100%;min-width:0}
+@media(max-width:600px){.exercise-visuals.movement-gallery.pair{gap:7px}.exercise-visuals.movement-gallery.pair figure{min-height:150px;border-radius:10px}.exercise-visuals.movement-gallery.pair img{height:clamp(150px,42vw,230px)}}
