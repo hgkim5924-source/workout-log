@@ -245,23 +245,18 @@ function translateExerciseName(en){
  return out.replace(/[_-]+/g,' ').replace(/\s+/g,' ').replace(/\s+,/g,',').trim();
 }
 function sourceFor(x){return x.sourceData||(x.sourceId?exerciseCatalogById.get(x.sourceId):null)||null}
-function sourceImageUrl(x,index=0){
- const e=sourceFor(x),path=e&&e.images&&e.images[index];
- return path?EXERCISE_ASSET_BASE+'/exercises/'+path:'';
-}
 function sourceMuscleUrl(x){
  const e=sourceFor(x);
  return e?EXERCISE_ASSET_BASE+'/muscle/'+e.id+'.svg':'';
 }
 function exerciseArt(x){
- const src=sourceImageUrl(x,0);
- return src?'<img class="movement-thumb" loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHTML(x.name)+' 동작 자세" onerror="this.style.display=\'none\'">':'<span class="no-exercise-art">—</span>';
+ const src=sourceMuscleUrl(x);
+ return src?'<img class="movement-thumb anatomy-thumb" loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHTML(x.name)+' 타깃 근육 해부학 도식" onerror="this.style.display=\'none\'">':'<span class="no-exercise-art">도식 없음</span>';
 }
 function exerciseGallery(x){
- const start=sourceImageUrl(x,0),end=sourceImageUrl(x,1),muscle=sourceMuscleUrl(x);
- if(!start||!muscle)return '<div class="source-visual-empty">이 종목과 정확히 연결된 공개 이미지 자료가 아직 없습니다.<small>다른 운동의 그림을 대신 표시하지 않습니다.</small></div>';
- const pose=(src,label)=>'<figure class="source-pose"><img src="'+src+'" alt="'+escapeHTML(x.name)+' '+label+'" loading="lazy" decoding="async" onerror="this.closest(\'figure\').classList.add(\'image-failed\')"><figcaption>'+label+'</figcaption></figure>';
- return '<div class="source-visuals"><section class="source-movement"><h4>운동 동작</h4><div class="source-pose-pair">'+pose(start,'시작 자세')+(end?pose(end,'끝 자세'):'')+'</div></section><section class="source-anatomy"><h4>타깃 근육</h4><img class="source-muscle-svg" src="'+muscle+'" alt="'+escapeHTML(x.name)+' 전면·후면 타깃 근육" loading="lazy" decoding="async" onerror="this.closest(\'section\').classList.add(\'image-failed\')"><p>빨강 · 주요 근육　 주황 · 협력 근육</p></section></div>';
+ const muscle=sourceMuscleUrl(x);
+ if(!muscle)return '<div class="source-visual-empty">이 종목에 정확히 연결된 타깃 근육 해부학 도식이 없습니다.<small>사람 사진이나 다른 운동의 그림은 대신 표시하지 않습니다.</small></div>';
+ return '<div class="anatomy-only"><h4>타깃 근육 해부학 도식</h4><img class="source-muscle-svg" src="'+muscle+'" alt="'+escapeHTML(x.name)+' 타깃 근육 강조 해부학 도식" loading="lazy" decoding="async" onerror="this.closest(\'.anatomy-only\').classList.add(\'image-failed\')"><p>빨강 · 주요 근육　 주황 · 협력 근육</p></div>';
 }
 function allExercises(){
  const legacy=LIB.map((x,i)=>{
@@ -282,7 +277,7 @@ let exerciseVisibleCount=48;
 async function refreshCustom(){window.customExerciseCache=await get('customExercises');}
 function renderCategories(){ $('#categoryChips').innerHTML=CATS.map(c=>`<button class="category-chip ${c===selectedCategory?'active':''}" data-cat="${c}">${c}</button>`).join('');document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;exerciseVisibleCount=48;renderCategories();renderLibrary()});}
 function renderLibrary(){const q=$('#exerciseSearch').value.trim().toLowerCase();const all=allExercises();const arr=all.filter(x=>(selectedCategory==='전체'||x.category===selectedCategory||!!q)&&(!q||[x.name,x.nameEn,x.primary,x.secondary,x.equipment,x.category].join(' ').toLowerCase().includes(q)));const visible=arr.slice(0,exerciseVisibleCount);$('#libraryList').innerHTML=`<div class="exercise-result-count">${arr.length.toLocaleString('ko-KR')}개 운동 · ${visible.length.toLocaleString('ko-KR')}개 표시</div>`+(visible.length?visible.map(x=>`<button class="library-item ${selectedExercise?.id===x.id?'chosen':''}" data-ex="${x.id}"><span class="mini-anatomy">${exerciseArt(x)}</span><span><b>${escapeHTML(x.name)}</b><small>${escapeHTML(x.primary)}</small></span></button>`).join(''):'<p class="empty">검색 결과가 없습니다.</p>')+(visible.length<arr.length?`<button class="secondary wide load-more-exercises" data-more-exercises>더 많은 운동 보기 (${(arr.length-visible.length).toLocaleString('ko-KR')}개 남음)</button>`:'');document.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{selectedExercise=allExercises().find(x=>x.id===b.dataset.ex);renderLibrary();renderDetail()});const more=$('[data-more-exercises]');if(more)more.onclick=()=>{exerciseVisibleCount+=48;renderLibrary()};}
-function renderDetail(){const x=selectedExercise;if(!x){$('#exerciseDetail').innerHTML='<div class="detail-empty">운동을 선택하면 타겟 부위와 설명이 표시됩니다.</div>';return}const src=sourceFor(x),cues=src?.cues_zh||[],mistakes=src?.mistakes_zh||[];$('#exerciseDetail').innerHTML=`<div class="detail-art">${exerciseGallery(x)}</div><div class="muscle-legend"><span>빨강 · 주요 타깃 근육</span><span>주황 · 협력 근육</span></div><h3>${escapeHTML(x.name)}</h3>${x.nameEn?`<p class="detail-meta">${escapeHTML(x.nameEn)}</p>`:''}<span class="target-pill">주 타겟 · ${escapeHTML(x.primary)}</span><p class="detail-meta">보조 근육 · ${escapeHTML(x.secondary)}</p><p class="detail-meta">운동 도구 · ${escapeHTML(x.equipment)}</p><p class="detail-desc">${escapeHTML(x.desc)}</p>${cues.length?`<div class="source-cues"><b>운동 동작 요령</b><ol>${cues.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ol></div>`:''}${mistakes.length?`<details class="source-mistakes"><summary>자주 하는 실수</summary><ul>${mistakes.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ul></details>`:''}<button class="primary wide" id="selectThisExercise">＋ 오늘 운동에 추가</button>`;$('#selectThisExercise').onclick=()=>{exerciseCard(x.name);toast(`${x.name} 추가 완료`)}}
+function renderDetail(){const x=selectedExercise;if(!x){$('#exerciseDetail').innerHTML='<div class="detail-empty">운동을 선택하면 타겟 부위와 설명이 표시됩니다.</div>';return}const src=sourceFor(x),cues=[],mistakes=[];$('#exerciseDetail').innerHTML=`<div class="detail-art">${exerciseGallery(x)}</div><div class="muscle-legend"><span>빨강 · 주요 타깃 근육</span><span>주황 · 협력 근육</span></div><h3>${escapeHTML(x.name)}</h3>${x.nameEn?`<p class="detail-meta">${escapeHTML(x.nameEn)}</p>`:''}<span class="target-pill">주 타겟 · ${escapeHTML(x.primary)}</span><p class="detail-meta">보조 근육 · ${escapeHTML(x.secondary)}</p><p class="detail-meta">운동 도구 · ${escapeHTML(x.equipment)}</p><p class="detail-desc">${escapeHTML(x.desc)}</p>${cues.length?`<div class="source-cues"><b>운동 동작 요령</b><ol>${cues.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ol></div>`:''}${mistakes.length?`<details class="source-mistakes"><summary>자주 하는 실수</summary><ul>${mistakes.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ul></details>`:''}<button class="primary wide" id="selectThisExercise">＋ 오늘 운동에 추가</button>`;$('#selectThisExercise').onclick=()=>{exerciseCard(x.name);toast(`${x.name} 추가 완료`)}}
 $('#exerciseSearch').oninput=()=>{exerciseVisibleCount=48;renderLibrary()};
 $('#customExerciseBtn').onclick=async()=>{const name=prompt('추가할 운동 이름을 입력하세요.');if(!name||!name.trim())return;const category=prompt('운동 분류를 입력하세요: 가슴, 등, 어깨, 이두, 삼두, 전완, 팔, 하체, 복근, 유산소, 전신, 스트레칭, 기타','기타');if(!CATS.includes(category)||category==='전체'){toast('운동 분류를 정확히 입력해주세요.');return}const primary=prompt('주 타겟 부위 (예: 광배근)','직접 입력 운동 부위')||'직접 입력';const custom=await get('customExercises');custom.push({id:'custom'+crypto.randomUUID(),category,name:name.trim(),primary,secondary:'직접 지정',equipment:'직접 입력',desc:'사용자가 직접 등록한 운동입니다.',builtin:false});await put('customExercises',custom);await refreshCustom();selectedCategory=category;selectedExercise=allExercises().find(x=>x.name===name.trim()&&!x.builtin);renderCategories();renderLibrary();renderDetail();toast('나만의 운동을 추가했습니다.')};
 
