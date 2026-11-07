@@ -99,13 +99,81 @@ let selectedCategory='가슴', selectedExercise=null;
 const muscleKey=c=>({'가슴':'chest','등':'back','어깨':'shoulder','이두':'biceps','삼두':'triceps','하체':'legs','복근':'abs','유산소':'cardio','기타':'other'}[c]||'other');
 function muscleMap(x){
  const p=(x.primary||'').toLowerCase(), q=(x.secondary||'').toLowerCase();
- const targets={chest:['대흉근','가슴'],back:['광배근','승모근','능형근','중부 등'],shoulder:['삼각근'],arms:['이두근','삼두근','전완근'],abs:['복직근','복횡근','복사근','코어'],glutes:['둔근'],quads:['대퇴사두근'],hams:['햄스트링'],calves:['비복근','가자미근','종아리']};
- const cls=k=>targets[k].some(t=>p.includes(t))?'primary':targets[k].some(t=>q.includes(t))?'secondary':'';
- const m=(k,d)=>'<path class="muscle '+cls(k)+'" d="'+d+'"/>';
- const base='<path class="base" d="M40 12 Q30 14 25 25 L12 43 L20 69 L29 48 L28 112 L25 147 L29 188 L39 188 L45 145 L51 145 L58 188 L68 188 L65 147 L62 112 L61 48 L70 69 L80 43 L65 25 Q59 14 50 12Z"/>';
- const front='<g transform="translate(5 0)">'+base+m('shoulder','M25 27 Q33 19 43 27 L40 42 L28 43Z')+m('shoulder','M50 27 Q60 19 67 27 L64 43 L53 42Z')+m('chest','M29 43 Q39 36 49 43 L48 58 L30 58Z')+m('chest','M51 43 Q61 36 64 43 L63 58 L51 58Z')+m('arms','M17 48 L27 45 L25 68 L18 67Z')+m('abs','M39 60 L54 60 L56 103 L49 109 L38 103Z')+m('quads','M29 112 L48 112 L44 151 L34 177 L27 170Z')+m('quads','M51 112 L62 112 L64 170 L57 177 L49 151Z')+m('calves','M29 176 L39 176 L36 211 L28 211Z')+'</g>';
- const back='<g transform="translate(112 0)">'+base+m('shoulder','M25 27 Q33 19 43 27 L40 42 L28 43Z')+m('shoulder','M50 27 Q60 19 67 27 L64 43 L53 42Z')+m('back','M31 47 L43 55 L46 91 L34 101 L28 76Z')+m('back','M55 55 L67 47 L70 76 L64 101 L52 91Z')+m('arms','M17 48 L27 45 L25 68 L18 67Z')+m('glutes','M29 108 L48 108 L49 133 L36 139 L28 126Z')+m('glutes','M51 108 L62 108 L64 126 L56 139 L49 133Z')+m('hams','M29 137 L46 137 L43 174 L34 181 L27 170Z')+m('hams','M51 137 L64 137 L66 170 L58 181 L49 174Z')+m('calves','M29 176 L39 176 L36 211 L28 211Z')+'</g>';
- return '<svg class="muscle-map" viewBox="0 0 205 220" role="img" aria-label="'+escapeHTML(x.name)+' 타겟 근육 도식">'+front+back+'<text x="53" y="219">전면</text><text x="158" y="219">후면</text></svg>';
+ const groups={
+  pec:{keys:['대흉근','가슴','흉근']},
+  deltFront:{keys:['전면 삼각근','전면삼각근']},
+  deltSide:{keys:['측면 삼각근','측면삼각근']},
+  deltRear:{keys:['후면 삼각근','후면삼각근']},
+  biceps:{keys:['상완이두근','이두근']},
+  brachialis:{keys:['상완근']},
+  triceps:{keys:['삼두근']},
+  forearm:{keys:['전완근','상완요골근']},
+  traps:{keys:['승모근']},
+  rhomboid:{keys:['능형근','중부 등']},
+  lats:{keys:['광배근','대원근']},
+  erector:{keys:['척추기립근']},
+  abs:{keys:['복직근','복횡근','복사근','코어']},
+  glute:{keys:['둔근','대둔근','중둔근','소둔근']},
+  quad:{keys:['대퇴사두근']},
+  ham:{keys:['햄스트링']},
+  calf:{keys:['비복근','가자미근','종아리']},
+  adductor:{keys:['내전근']}
+ };
+ const state={};
+ Object.keys(groups).forEach(k=>{
+  const keys=groups[k].keys;
+  state[k]=keys.some(t=>p.includes(t))?'primary':keys.some(t=>q.includes(t))?'secondary':'';
+ });
+ if(p.includes('삼각근')&&!p.includes('전면')&&!p.includes('측면')&&!p.includes('후면')) state.deltFront=state.deltSide='primary';
+ if(q.includes('삼각근')&&!q.includes('전면')&&!q.includes('측면')&&!q.includes('후면')) state.deltFront=state.deltSide='secondary';
+ if(p.includes('대흉근 전체')||p==='대흉근') state.pec='primary';
+ if(p.includes('상부 가슴')) state.pec='primary';
+ if(p.includes('하부 가슴')) state.pec='primary';
+ const cls=k=>state[k]||'';
+ const path=(k,d)=>'<path class="muscle '+cls(k)+'" d="'+d+'"/>';
+ const base='<path class="base" d="M47 10 Q36 10 31 20 L23 27 L13 48 L21 72 L30 63 L32 48 L34 78 L30 116 L27 153 L25 194 L37 196 L46 154 L53 154 L62 196 L74 194 L71 153 L68 116 L64 78 L66 48 L68 63 L77 72 L85 48 L75 27 L67 20 Q61 10 47 10Z"/>';
+ const head='<ellipse class="base" cx="50" cy="7" rx="9" ry="10"/>';
+ const front='<g transform="translate(2 4)">'+head+base+
+ path('deltFront','M25 26 Q31 18 42 23 L43 39 Q35 42 28 37Z')+
+ path('deltFront','M57 23 Q68 18 75 26 L72 37 Q65 42 57 39Z')+
+ path('pec','M31 39 Q39 32 48 39 L48 57 Q39 61 31 54Z')+
+ path('pec','M52 39 Q61 32 69 39 L69 54 Q61 61 52 57Z')+
+ path('biceps','M20 47 Q26 42 30 48 L27 69 L21 67Z')+
+ path('biceps','M70 48 Q75 42 80 47 L79 67 L73 69Z')+
+ path('forearm','M18 72 L26 71 L24 98 L17 96Z')+
+ path('forearm','M74 71 L82 72 L83 96 L76 98Z')+
+ path('abs','M39 61 Q49 58 50 62 L50 104 Q44 108 38 103Z')+
+ path('abs','M52 62 Q62 58 62 61 L63 103 Q57 108 52 104Z')+
+ path('abs','M32 62 Q36 61 39 64 L37 99 L31 95Z')+
+ path('abs','M63 64 Q67 61 70 62 L71 95 L65 99Z')+
+ path('adductor','M40 111 L49 111 L48 148 L42 163 L36 147Z')+
+ path('adductor','M52 111 L61 111 L65 147 L58 163 L52 148Z')+
+ path('quad','M31 113 Q40 108 48 114 L45 151 L36 177 L29 169Z')+
+ path('quad','M52 114 Q61 108 69 113 L71 169 L64 177 L55 151Z')+
+ path('calf','M30 172 L39 171 L36 211 L28 211Z')+
+ path('calf','M61 171 L70 172 L72 211 L64 211Z')+'</g>';
+ const back='<g transform="translate(112 4)">'+head+base+
+ path('deltRear','M25 26 Q32 18 42 23 L43 39 Q34 42 28 37Z')+
+ path('deltRear','M57 23 Q68 18 75 26 L72 37 Q65 42 57 39Z')+
+ path('traps','M42 22 Q50 19 58 22 L65 43 L50 53 L35 43Z')+
+ path('traps','M36 42 L50 51 L64 42 L61 59 L50 65 L39 59Z')+
+ path('rhomboid','M38 48 L49 54 L49 80 L38 74Z')+
+ path('rhomboid','M51 54 L62 48 L62 74 L51 80Z')+
+ path('lats','M31 57 Q37 51 43 58 L47 92 L36 108 L29 88Z')+
+ path('lats','M57 58 Q64 51 69 57 L71 88 L64 108 L53 92Z')+
+ path('triceps','M19 47 Q25 42 30 48 L27 70 L21 68Z')+
+ path('triceps','M70 48 Q75 42 80 47 L79 68 L73 70Z')+
+ path('forearm','M18 72 L26 71 L24 98 L17 96Z')+
+ path('forearm','M74 71 L82 72 L83 96 L76 98Z')+
+ path('erector','M45 57 Q50 54 51 58 L51 108 L46 111Z')+
+ path('erector','M53 58 Q56 54 58 57 L57 111 L52 108Z')+
+ path('glute','M32 110 Q41 104 49 111 L49 137 L37 142 L29 130Z')+
+ path('glute','M52 111 Q60 104 68 110 L71 130 L63 142 L52 137Z')+
+ path('ham','M31 140 Q40 136 48 141 L44 175 L36 185 L29 170Z')+
+ path('ham','M52 141 Q60 136 69 140 L71 170 L64 185 L56 175Z')+
+ path('calf','M30 176 L39 175 L36 211 L28 211Z')+
+ path('calf','M61 175 L70 176 L72 211 L64 211Z')+'</g>';
+ return '<svg class="muscle-map" viewBox="0 0 205 226" role="img" aria-label="'+escapeHTML(x.name)+' 타겟 근육 해부 도식">'+front+back+'<text x="52" y="224">전면</text><text x="162" y="224">후면</text></svg>';
 }
 function exerciseArt(x){return muscleMap(x)}
 function exerciseGallery(x){return muscleMap(x)}
