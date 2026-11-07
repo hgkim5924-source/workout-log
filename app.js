@@ -14,11 +14,31 @@ $('#todayLabel').textContent=dateText(today());$('#bodyDate').value=today();
 
 function exerciseCard(name='',setsData=null){
  const card=document.createElement('div');card.className='exercise-card';
- card.innerHTML=`<div class="exercise-top"><input class="input ex-name" placeholder="운동 종목 (예: 랫풀다운)" value="${String(name).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;')}"><button class="remove">삭제</button></div><div class="set-head"><span>세트</span><span>중량 (kg)</span><span>횟수</span><span></span></div><div class="sets"></div><button class="add-set">+ 세트 추가</button>`;
+ card.innerHTML=\`<div class="exercise-top"><input class="input ex-name" placeholder="운동 종목 (예: 랫풀다운)" value="\${escapeHTML(name)}"><button class="remove">삭제</button></div><div class="set-head"><span>세트</span><span>중량 (kg)</span><span>횟수</span><span>복사</span><span></span></div><div class="sets"></div><div class="exercise-tools"><button class="copy-all">첫 세트 값 전체 적용</button><button class="finish-exercise">종목 완료</button></div><div class="exercise-summary"></div><button class="add-set">＋ 세트 추가</button>\`;
  card.querySelector('.remove').onclick=()=>card.remove();
- const add=(data={})=>{const n=card.querySelectorAll('.set-row').length+1;const row=document.createElement('div');row.className='set-row';row.innerHTML=`<span>${n}</span><input type="number" min="0" step="0.5" placeholder="0" value="${data.weight??''}"><input type="number" min="0" step="1" placeholder="0" value="${data.reps??''}"><button aria-label="세트 삭제">×</button>`;row.querySelector('button').onclick=()=>{row.remove();[...card.querySelectorAll('.set-row span')].forEach((x,i)=>x.textContent=i+1)};card.querySelector('.sets').append(row)};
+ const add=(data={})=>{const n=card.querySelectorAll('.set-row').length+1;const row=document.createElement('div');row.className='set-row';row.innerHTML=\`<span>\${n}</span><input type="number" min="0" step="0.5" placeholder="0" value="\${data.weight??''}" aria-label="\${n}세트 중량"><input type="number" min="0" step="1" placeholder="0" value="\${data.reps??''}" aria-label="\${n}세트 횟수"><button class="copy-row" aria-label="이 세트 값을 이후 세트에 복사" title="이 세트 값을 이후 세트에 복사">↓</button><button class="remove-row" aria-label="세트 삭제">×</button>\`;
+  row.querySelector('.remove-row').onclick=()=>{row.remove();[...card.querySelectorAll('.set-row span')].forEach((x,i)=>x.textContent=i+1);updateExerciseSummary(card)};
+  row.querySelector('.copy-row').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')],idx=rows.indexOf(row),w=row.children[1].value,r=row.children[2].value;if(!w&&!r){toast('먼저 중량 또는 횟수를 입력하세요.');return}rows.slice(idx+1).forEach(x=>{x.children[1].value=w;x.children[2].value=r});updateExerciseSummary(card);toast('이후 세트에 동일한 값을 적용했습니다.')};
+  row.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>updateExerciseSummary(card)));
+  card.querySelector('.sets').append(row);
+ };
  card.querySelector('.add-set').onclick=()=>add();
- (setsData&&setsData.length?setsData:[{},{},{}]).forEach(add);$('#exerciseList').append(card);
+ (setsData&&setsData.length?setsData:[{},{},{}]).forEach(add);
+ card.querySelector('.copy-all').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')];if(!rows.length)return;const w=rows[0].children[1].value,r=rows[0].children[2].value;if(!w&&!r){toast('첫 세트의 중량 또는 횟수를 입력하세요.');return}rows.slice(1).forEach(x=>{x.children[1].value=w;x.children[2].value=r});updateExerciseSummary(card);toast('첫 세트 값을 모든 세트에 적용했습니다.')};
+ card.querySelector('.finish-exercise').onclick=()=>{card.classList.toggle('completed');card.querySelector('.finish-exercise').textContent=card.classList.contains('completed')?'완료 취소':'종목 완료';updateExerciseSummary(card,true)};
+ card.querySelector('.ex-name').addEventListener('input',()=>updateExerciseSummary(card));
+ $('#exerciseList').append(card);updateExerciseSummary(card);
+}
+function exerciseMetrics(card){
+ const sets=[...card.querySelectorAll('.set-row')].map(r=>({weight:Number(r.children[1].value)||0,reps:Number(r.children[2].value)||0})).filter(s=>s.reps>0);
+ const reps=sets.reduce((n,s)=>n+s.reps,0),volume=sets.reduce((n,s)=>n+s.weight*s.reps,0);
+ const oneRM=sets.reduce((m,s)=>s.weight>0?Math.max(m,s.weight*(1+s.reps/30)):m,0);
+ return {sets,reps,volume,oneRM};
+}
+function updateExerciseSummary(card,announce=false){
+ const m=exerciseMetrics(card),el=card.querySelector('.exercise-summary');
+ el.innerHTML=\`<div class="exercise-stat"><span>총 볼륨</span><b>\${m.volume.toLocaleString('ko-KR',{maximumFractionDigits:1})} <small>kg</small></b></div><div class="exercise-stat"><span>총 반복</span><b>\${m.reps} <small>회</small></b></div><div class="exercise-stat"><span>추정 1RM</span><b>\${m.oneRM?m.oneRM.toFixed(1):'—'} <small>kg</small></b></div>\${card.classList.contains('completed')?'<p class="completed-note">✓ 종목 기록 완료 · Epley 추정식</p>':''}\`;
+ if(announce&&card.classList.contains('completed'))toast('종목 기록 완료 · 볼륨과 추정 1RM을 계산했습니다.');
 }
 function newSession(){go('record');$('#sessionName').value='';$('#exerciseList').innerHTML='';exerciseCard()}
 
@@ -145,8 +165,19 @@ function muscleMap(x){
  line('M50 22 L50 109 M34 43 L43 49 M66 43 L57 49 M36 109 Q50 104 64 109 M38 139 L45 145 M62 139 L55 145')+'</g>';
  return '<svg class="muscle-map" viewBox="0 0 205 226" role="img" aria-label="'+escapeHTML(x.name)+' 근육 해부 도식">'+front+back+'<text x="52" y="224">전면</text><text x="163" y="224">후면</text></svg>';
 }
-function exerciseArt(x){return muscleMap(x)}
-function exerciseGallery(x){return muscleMap(x)}
+const EXERCISE_IMAGE_IDS={
+'벤치프레스':'Barbell_Bench_Press','인클라인 벤치프레스':'Barbell_Incline_Bench_Press','디클라인 벤치프레스':'Barbell_Decline_Bench_Press','덤벨 벤치프레스':'Dumbbell_Bench_Press','인클라인 덤벨프레스':'Incline_Dumbbell_Press','덤벨 플라이':'Dumbbell_Flyes','케이블 플라이':'Cable_Crossover','펙덱 플라이':'Butterfly','체스트 프레스 머신':'Machine_Bench_Press','푸시업':'Pushups',
+'데드리프트':'Barbell_Deadlift','루마니안 데드리프트':'Romanian_Deadlift','랫풀다운':'Wide-Grip_Lat_Pulldown','와이드 랫풀다운':'Wide-Grip_Lat_Pulldown','언더그립 랫풀다운':'Reverse-Grip_Pulldown','풀업':'Pullups','친업':'Chin-Ups','바벨 로우':'Bent_Over_Barbell_Row','덤벨 원암 로우':'One-Arm_Dumbbell_Row','시티드 케이블 로우':'Seated_Cable_Rows','체스트 서포티드 로우':'Incline_Dumbbell_Row','티바 로우':'T-Bar_Row','스트레이트 암 풀다운':'Straight-Arm_Pulldown',
+'오버헤드 프레스':'Barbell_Shoulder_Press','덤벨 숄더 프레스':'Seated_Dumbbell_Press','아놀드 프레스':'Arnold_Dumbbell_Press','사이드 레터럴 레이즈':'Side_Lateral_Raise','케이블 레터럴 레이즈':'Cable_Lateral_Raise','프론트 레이즈':'Front_Dumbbell_Raise','리어 델트 플라이':'Seated_Bent-Over_Rear_Delt_Raise','페이스 풀':'Face_Pull','업라이트 로우':'Upright_Barbell_Row',
+'바벨 컬':'Barbell_Curl','덤벨 컬':'Dumbbell_Bicep_Curl','해머 컬':'Hammer_Curls','인클라인 덤벨 컬':'Incline_Dumbbell_Curl','프리처 컬':'Preacher_Curl','케이블 컬':'Cable_Biceps_Curl',
+'케이블 푸시다운':'Triceps_Pushdown','로프 푸시다운':'Triceps_Pushdown','오버헤드 케이블 익스텐션':'Cable_Rope_Overhead_Triceps_Extension','라잉 트라이셉스 익스텐션':'EZ-Bar_Skullcrusher','클로즈그립 벤치프레스':'Close-Grip_Barbell_Bench_Press','딥스':'Dips',
+'바벨 백 스쿼트':'Barbell_Squat','프론트 스쿼트':'Front_Squat','고블릿 스쿼트':'Goblet_Squat','레그 프레스':'Leg_Press','레그 익스텐션':'Leg_Extensions','레그 컬':'Lying_Leg_Curls','불가리안 스플릿 스쿼트':'Bulgarian_Split_Squats','런지':'Dumbbell_Lunges','힙 쓰러스트':'Barbell_Hip_Thrust','카프 레이즈':'Standing_Calf_Raises','힙 어브덕션':'Hip_Abduction','힙 어덕션':'Hip_Adduction',
+'크런치':'Crunches','행잉 레그 레이즈':'Hanging_Leg_Raise','플랭크':'Plank','케이블 크런치':'Cable_Crunch','러시안 트위스트':'Russian_Twist','데드 버그':'Dead_Bug'
+};
+const EXERCISE_IMAGE_BASE='https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+function imagePair(x){const id=EXERCISE_IMAGE_IDS[x.name];return id?[EXERCISE_IMAGE_BASE+id+'/0.jpg',EXERCISE_IMAGE_BASE+id+'/1.jpg']:null}
+function exerciseArt(x){const pair=imagePair(x);return pair?'<img class="movement-thumb" loading="lazy" src="'+pair[0]+'" alt="'+escapeHTML(x.name)+' 운동 자세" onerror="this.style.display=\\'none\\'">':muscleMap(x)}
+function exerciseGallery(x){const pair=imagePair(x);return pair?'<div class="movement-gallery"><figure><img loading="lazy" src="'+pair[0]+'" alt="'+escapeHTML(x.name)+' 시작 자세" onerror="this.closest(\\'figure\\').remove()"><figcaption>시작 자세</figcaption></figure><figure><img loading="lazy" src="'+pair[1]+'" alt="'+escapeHTML(x.name)+' 동작 자세" onerror="this.closest(\\'figure\\').remove()"><figcaption>동작 자세</figcaption></figure></div>':muscleMap(x)}
 function allExercises(){return [...LIB.map((x,i)=>({id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true})),...(window.customExerciseCache||[])];}
 async function refreshCustom(){window.customExerciseCache=await get('customExercises');}
 function renderCategories(){ $('#categoryChips').innerHTML=CATS.map(c=>`<button class="category-chip ${c===selectedCategory?'active':''}" data-cat="${c}">${c}</button>`).join('');document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;renderCategories();renderLibrary()});}
@@ -166,7 +197,7 @@ $('#loadPrevious').onclick=async()=>{
  last.exercises.forEach(ex=>exerciseCard(ex.name,ex.sets));
  toast(`${dateText(last.date)} 기록을 불러왔습니다. 중량과 횟수를 수정해 저장하세요.`);
 };
-$('#saveWorkout').onclick=async()=>{const exercises=[...document.querySelectorAll('.exercise-card')].map(c=>({name:c.querySelector('.ex-name').value.trim(),sets:[...c.querySelectorAll('.set-row')].map(r=>({weight:Number(r.children[1].value)||0,reps:Number(r.children[2].value)||0})).filter(s=>s.reps>0)})).filter(e=>e.name&&e.sets.length);if(!exercises.length){toast('운동 종목과 유효한 세트를 입력하세요.');return}const logs=await get('logs');logs.unshift({id:crypto.randomUUID(),date:today(),name:$('#sessionName').value.trim()||'운동',exercises});await put('logs',logs);toast('운동 기록을 저장했습니다.');go('home')};
+$('#saveWorkout').onclick=async()=>{const exercises=[...document.querySelectorAll('.exercise-card')].map(c=>{const m=exerciseMetrics(c);return {name:c.querySelector('.ex-name').value.trim(),sets:m.sets,totalReps:m.reps,totalVolume:m.volume,estimated1RM:m.oneRM,completed:c.classList.contains('completed')}}).filter(e=>e.name&&e.sets.length);if(!exercises.length){toast('운동 종목과 유효한 세트를 입력하세요.');return}const logs=await get('logs');logs.unshift({id:crypto.randomUUID(),date:today(),name:$('#sessionName').value.trim()||'운동',exercises});await put('logs',logs);toast('운동 기록을 저장했습니다.');go('home')};
 async function renderHome(){const logs=await get('logs');const week=new Date();week.setDate(week.getDate()-6);const count=logs.filter(x=>new Date(x.date+'T00:00:00')>=new Date(week.toDateString())).length;$('#weekCount').innerHTML=`${count}<span> 회</span>`;$('#totalSets').innerHTML=`${logs.reduce((a,l)=>a+l.exercises.reduce((b,e)=>b+e.sets.length,0),0)}<span> 세트</span>`;const todayLog=logs.find(x=>x.date===today());$('#todayTitle').textContent=todayLog?todayLog.name:'운동을 시작해볼까요?';$('#todaySub').textContent=todayLog?`${todayLog.exercises.length}개 종목 기록 완료`:'오늘의 기록을 남겨보세요.';const recent=logs.slice(0,3);$('#recentList').className='stack'+(recent.length?'':' empty');$('#recentList').innerHTML=recent.length?recent.map(l=>`<article class="item-card"><h4>${escapeHTML(l.name)}</h4><p>${dateText(l.date)} · ${l.exercises.length}개 종목 · ${l.exercises.reduce((a,e)=>a+e.sets.length,0)}세트</p></article>`).join(''):'아직 기록이 없습니다.'}
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function renderHistory(){const logs=await get('logs');$('#historyList').className='stack'+(logs.length?'':' empty');$('#historyList').innerHTML=logs.length?logs.map(l=>`<article class="item-card"><h4>${escapeHTML(l.name)} <button class="remove" data-delete="${l.id}">삭제</button></h4><p>${dateText(l.date)}</p>${l.exercises.map(e=>`<p><b>${escapeHTML(e.name)}</b> · ${e.sets.map(s=>`${s.weight}kg × ${s.reps}`).join(' / ')}</p>`).join('')}</article>`).join(''):'저장된 운동이 없습니다.';document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{if(confirm('이 운동 기록을 삭제할까요?')){await put('logs',(await get('logs')).filter(x=>x.id!==b.dataset.delete));renderHistory()}})}
