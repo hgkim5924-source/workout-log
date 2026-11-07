@@ -118,52 +118,35 @@ const LIB=[
 let selectedCategory='가슴', selectedExercise=null;
 const muscleKey=c=>({'가슴':'chest','등':'back','어깨':'shoulder','이두':'biceps','삼두':'triceps','하체':'legs','복근':'abs','유산소':'cardio','기타':'other'}[c]||'other');
 function muscleMap(x){
- const p=(x.primary||'').toLowerCase(),q=(x.secondary||'').toLowerCase();
- const groups={
-  pec:['대흉근','가슴','흉근'],deltFront:['전면 삼각근','전면삼각근'],deltSide:['측면 삼각근','측면삼각근'],deltRear:['후면 삼각근','후면삼각근'],
-  biceps:['상완이두근','이두근'],brachialis:['상완근'],triceps:['삼두근'],forearm:['전완근','상완요골근'],
-  traps:['승모근'],rhomboid:['능형근','중부 등'],lats:['광배근','대원근'],erector:['척추기립근'],
-  abs:['복직근','복횡근','복사근','코어'],oblique:['복사근'],serratus:['전거근'],
-  glute:['둔근','대둔근','중둔근','소둔근'],quad:['대퇴사두근'],ham:['햄스트링'],calf:['비복근','가자미근','종아리'],adductor:['내전근']
- };
- const st={};Object.keys(groups).forEach(k=>{st[k]=groups[k].some(t=>p.includes(t))?'primary':groups[k].some(t=>q.includes(t))?'secondary':''});
- if(p.includes('삼각근')&&!/전면|측면|후면/.test(p))st.deltFront=st.deltSide='primary';
- if(q.includes('삼각근')&&!/전면|측면|후면/.test(q))st.deltFront=st.deltSide='secondary';
- if(p.includes('대흉근 전체')||p==='대흉근'||p.includes('상부 가슴')||p.includes('하부 가슴'))st.pec='primary';
- const m=(k,d)=>'<path class="muscle '+(st[k]||'')+'" d="'+d+'"/>';
- const line=d=>'<path class="anatomy-line" d="'+d+'"/>';
- const body='<path class="body" d="M47 13 Q39 12 34 19 L25 25 Q19 31 15 45 L22 69 L30 61 L32 46 L34 78 L31 111 L28 146 L25 193 L38 196 L46 153 L54 153 L62 196 L75 193 L72 146 L69 111 L66 78 L68 46 L70 61 L78 69 L85 45 Q81 31 75 25 L66 19 Q61 12 53 13Z"/>';
- const head='<ellipse class="body" cx="50" cy="8" rx="8.5" ry="10"/>';
- const front='<g transform="translate(1 3)">'+head+body+
- m('deltFront','M25 25 Q31 18 41 22 Q45 27 42 39 Q34 42 27 36Z')+m('deltFront','M59 22 Q69 18 75 25 L73 36 Q66 42 58 39Z')+
- m('deltSide','M22 28 Q17 34 21 45 L29 41 L30 29Z')+m('deltSide','M78 28 Q83 34 79 45 L71 41 L70 29Z')+
- m('pec','M30 39 Q37 32 48 38 L48 53 Q41 59 31 53 Q28 47 30 39Z')+m('pec','M52 38 Q63 32 70 39 Q72 47 69 53 Q59 59 52 53Z')+
- m('biceps','M20 47 Q25 42 30 47 L28 65 Q25 70 21 66Z')+m('biceps','M70 47 Q75 42 80 47 L79 66 Q75 70 72 65Z')+
- m('brachialis','M25 55 Q29 53 30 60 L28 69 L24 66Z')+m('brachialis','M70 60 Q71 53 75 55 L76 66 L72 69Z')+
- m('forearm','M18 70 Q22 68 27 71 L24 97 L17 95Z')+m('forearm','M73 71 Q78 68 82 70 L83 95 L76 97Z')+
- m('serratus','M31 57 L37 60 L35 72 L30 68Z')+m('serratus','M63 60 L69 57 L70 68 L65 72Z')+
- m('oblique','M32 61 Q36 60 39 64 L37 98 L31 94Z')+m('oblique','M61 64 Q65 60 69 61 L70 94 L64 98Z')+
- m('abs','M40 59 Q45 57 49 60 L49 72 L40 73Z')+m('abs','M51 60 Q56 57 61 59 L61 73 L51 72Z')+
- m('abs','M40 75 L49 75 L49 87 L39 87Z')+m('abs','M51 75 L61 75 L61 87 L51 87Z')+
- m('abs','M39 89 L49 89 L49 102 L38 100Z')+m('abs','M51 89 L62 89 L62 100 L51 102Z')+
- m('adductor','M39 111 L49 111 L48 143 L42 158 L36 143Z')+m('adductor','M52 111 L62 111 L64 143 L58 158 L52 143Z')+
- m('quad','M31 111 Q38 107 47 112 L44 145 L36 175 L29 166Z')+m('quad','M53 112 Q62 107 69 111 L71 166 L64 175 L56 145Z')+
- m('calf','M30 171 Q34 168 40 172 L36 210 L28 210Z')+m('calf','M60 172 Q66 168 70 171 L72 210 L64 210Z')+
- line('M50 59 L50 104 M29 39 Q39 35 49 39 M51 39 Q61 35 70 39 M34 78 Q40 82 48 79 M52 79 Q60 82 66 78')+'</g>';
- const back='<g transform="translate(112 3)">'+head+body+
- m('deltRear','M25 25 Q32 18 42 22 Q45 28 42 39 Q34 42 27 36Z')+m('deltRear','M58 22 Q68 18 75 25 L73 36 Q66 42 58 39Z')+
- m('deltSide','M22 28 Q17 34 21 45 L29 41 L30 29Z')+m('deltSide','M78 28 Q83 34 79 45 L71 41 L70 29Z')+
- m('traps','M42 21 Q50 17 58 21 L66 42 L50 53 L34 42Z')+
- m('rhomboid','M36 43 L49 51 L49 72 L39 68 L33 54Z')+m('rhomboid','M51 51 L64 43 L67 54 L61 68 L51 72Z')+
- m('lats','M31 55 Q37 49 44 57 L47 91 L38 106 L29 87Z')+m('lats','M56 57 Q63 49 69 55 L71 87 L62 106 L53 91Z')+
- m('triceps','M19 47 Q25 42 30 47 L28 67 L21 68Z')+m('triceps','M70 47 Q75 42 80 47 L79 68 L72 67Z')+
- m('forearm','M18 70 Q22 68 27 71 L24 97 L17 95Z')+m('forearm','M73 71 Q78 68 82 70 L83 95 L76 97Z')+
- m('erector','M45 55 Q49 53 49 58 L48 108 L44 111 L42 82Z')+m('erector','M51 58 Q51 53 55 55 L58 82 L56 111 L52 108Z')+
- m('glute','M31 108 Q39 103 49 109 L49 132 Q42 140 34 134 L29 124Z')+m('glute','M51 109 Q61 103 69 108 L71 124 L66 134 Q58 140 51 132Z')+
- m('ham','M31 137 Q38 133 48 138 L45 169 L37 183 L29 168Z')+m('ham','M52 138 Q62 133 69 137 L71 168 L63 183 L55 169Z')+
- m('calf','M30 171 Q35 168 40 172 L36 210 L28 210Z')+m('calf','M60 172 Q65 168 70 171 L72 210 L64 210Z')+
- line('M50 22 L50 109 M34 43 L43 49 M66 43 L57 49 M36 109 Q50 104 64 109 M38 139 L45 145 M62 139 L55 145')+'</g>';
- return '<svg class="muscle-map" viewBox="0 0 205 226" role="img" aria-label="'+escapeHTML(x.name)+' 근육 해부 도식">'+front+back+'<text x="52" y="224">전면</text><text x="163" y="224">후면</text></svg>';
+ const read=(x.primary||'')+' '+(x.secondary||'');
+ const groups=[
+  {keys:['대흉근','가슴','흉근','상부 가슴','하부 가슴'],slug:'chest'},
+  {keys:['전면 삼각근','측면 삼각근','후면 삼각근','삼각근','어깨'],slug:'deltoids'},
+  {keys:['이두근','상완이두근','이두'],slug:'biceps'},
+  {keys:['삼두근','삼두'],slug:'triceps'},
+  {keys:['전완근','상완요골근'],slug:'forearms'},
+  {keys:['승모근','상부 승모근'],slug:'traps'},
+  {keys:['광배근','대원근','등'],slug:'lats'},
+  {keys:['능형근','중부 등'],slug:'rhomboids'},
+  {keys:['척추기립근','허리'],slug:'lower_back'},
+  {keys:['복직근','복횡근','코어'],slug:'abs'},
+  {keys:['복사근'],slug:'obliques'},
+  {keys:['둔근','대둔근','중둔근','소둔근'],slug:'gluteal'},
+  {keys:['대퇴사두근','허벅지 앞'],slug:'quadriceps'},
+  {keys:['햄스트링','허벅지 뒤'],slug:'hamstrings'},
+  {keys:['비복근','가자미근','종아리'],slug:'calves'},
+  {keys:['내전근'],slug:'adductors'},
+  {keys:['고관절 굴곡근','장요근'],slug:'hip_flexors'}
+ ];
+ const has=(arr)=>arr.some(k=>read.includes(k));
+ let primary=groups.filter(g=>has(g.keys)&&g.keys.some(k=>(x.primary||'').includes(k))).map(g=>g.slug);
+ let secondary=groups.filter(g=>has(g.keys)&&g.keys.some(k=>(x.secondary||'').includes(k))).map(g=>g.slug);
+ if(!primary.length&&/심폐지구력/.test(read)) primary=['quadriceps','gluteal','calves'];
+ if(!secondary.length&&/심폐지구력/.test(read)) secondary=['abs'];
+ secondary=secondary.filter(v=>!primary.includes(v));
+ const layers=[primary.length?'B6F36B:'+primary.join(','):'',secondary.length?'60A5FA:'+secondary.join(','):''].filter(Boolean).join('|');
+ const src='https://api.anatome.dev/generateImage?gender=male&view=dual&width=460&layers='+encodeURIComponent(layers||'B6F36B:chest')+'&output=raw';
+ return '<img class="muscle-map external-anatomy" loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHTML(x.name)+' 전면·후면 근육 타겟 도식" onerror="this.outerHTML=\'<div class=&quot;anatomy-fallback&quot;>근육 도식을 불러오지 못했습니다</div>\'">';
 }
 const EXERCISE_IMAGE_PATHS={
   "벤치프레스": [
