@@ -251,13 +251,13 @@ function sourceMuscleUrl(x){
 }
 function exerciseArt(x){
  const src=sourceImageUrl(x,0);
- return src?'<img class="movement-thumb" loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHTML(x.name)+' 동작 자세" onerror="this.style.display=\\'none\\'">':'<span class="no-exercise-art">—</span>';
+ return src?'<img class="movement-thumb" loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHTML(x.name)+' 동작 자세" onerror="this.style.display=\'none\'">':'<span class="no-exercise-art">—</span>';
 }
 function exerciseGallery(x){
  const start=sourceImageUrl(x,0),end=sourceImageUrl(x,1),muscle=sourceMuscleUrl(x);
  if(!start||!muscle)return '<div class="source-visual-empty">이 종목과 정확히 연결된 공개 이미지 자료가 아직 없습니다.<small>다른 운동의 그림을 대신 표시하지 않습니다.</small></div>';
- const pose=(src,label)=>'<figure class="source-pose"><img src="'+src+'" alt="'+escapeHTML(x.name)+' '+label+'" loading="lazy" decoding="async" onerror="this.closest(\\'figure\\').classList.add(\\'image-failed\\')"><figcaption>'+label+'</figcaption></figure>';
- return '<div class="source-visuals"><section class="source-movement"><h4>운동 동작</h4><div class="source-pose-pair">'+pose(start,'시작 자세')+(end?pose(end,'끝 자세'):'')+'</div></section><section class="source-anatomy"><h4>타깃 근육</h4><img class="source-muscle-svg" src="'+muscle+'" alt="'+escapeHTML(x.name)+' 전면·후면 타깃 근육" loading="lazy" decoding="async" onerror="this.closest(\\'section\\').classList.add(\\'image-failed\\')"><p>빨강 · 주요 근육　 주황 · 협력 근육</p></section></div>';
+ const pose=(src,label)=>'<figure class="source-pose"><img src="'+src+'" alt="'+escapeHTML(x.name)+' '+label+'" loading="lazy" decoding="async" onerror="this.closest(\'figure\').classList.add(\'image-failed\')"><figcaption>'+label+'</figcaption></figure>';
+ return '<div class="source-visuals"><section class="source-movement"><h4>운동 동작</h4><div class="source-pose-pair">'+pose(start,'시작 자세')+(end?pose(end,'끝 자세'):'')+'</div></section><section class="source-anatomy"><h4>타깃 근육</h4><img class="source-muscle-svg" src="'+muscle+'" alt="'+escapeHTML(x.name)+' 전면·후면 타깃 근육" loading="lazy" decoding="async" onerror="this.closest(\'section\').classList.add(\'image-failed\')"><p>빨강 · 주요 근육　 주황 · 협력 근육</p></section></div>';
 }
 function allExercises(){
  const legacy=LIB.map((x,i)=>{
