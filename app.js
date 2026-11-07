@@ -97,35 +97,84 @@ const LIB=[
 ];
 let selectedCategory='가슴', selectedExercise=null;
 const muscleKey=c=>({'가슴':'chest','등':'back','어깨':'shoulder','이두':'biceps','삼두':'triceps','하체':'legs','복근':'abs','유산소':'cardio','기타':'other'}[c]||'other');
+const EXERCISE_PHOTOS={
+ '벤치프레스':'Barbell_Bench_Press_-_Medium_Grip',
+ '인클라인 벤치프레스':'Barbell_Incline_Bench_Press_-_Medium_Grip',
+ '디클라인 벤치프레스':'Decline_Barbell_Bench_Press',
+ '덤벨 벤치프레스':'Dumbbell_Bench_Press',
+ '인클라인 덤벨프레스':'Incline_Dumbbell_Press',
+ '덤벨 플라이':'Dumbbell_Flyes',
+ '케이블 플라이':'Cable_Crossover',
+ '체스트 프레스 머신':'Leverage_Chest_Press',
+ '푸시업':'Pushups',
+ '데드리프트':'Barbell_Deadlift',
+ '루마니안 데드리프트':'Romanian_Deadlift',
+ '랫풀다운':'Close-Grip_Front_Lat_Pulldown',
+ '와이드 랫풀다운':'Wide-Grip_Lat_Pulldown',
+ '언더그립 랫풀다운':'Reverse-Grip_Lat_Pulldown',
+ '풀업':'Pullups',
+ '친업':'Chin-Up',
+ '바벨 로우':'Bent_Over_Barbell_Row',
+ '덤벨 원암 로우':'One-Arm_Dumbbell_Row',
+ '시티드 케이블 로우':'Seated_Cable_Rows',
+ '체스트 서포티드 로우':'Lying_T-Bar_Row',
+ '티바 로우':'T-Bar_Row_with_Handle',
+ '스트레이트 암 풀다운':'Straight-Arm_Pulldown',
+ '오버헤드 프레스':'Barbell_Shoulder_Press',
+ '덤벨 숄더 프레스':'Dumbbell_Shoulder_Press',
+ '아놀드 프레스':'Arnold_Dumbbell_Press',
+ '사이드 레터럴 레이즈':'Side_Lateral_Raise',
+ '케이블 레터럴 레이즈':'Cable_Seated_Lateral_Raise',
+ '프론트 레이즈':'Front_Dumbbell_Raise',
+ '리어 델트 플라이':'Cable_Rear_Delt_Fly',
+ '페이스 풀':'Face_Pull',
+ '업라이트 로우':'Standing_Dumbbell_Upright_Row',
+ '바벨 컬':'Barbell_Curl',
+ '덤벨 컬':'Dumbbell_Bicep_Curl',
+ '해머 컬':'Hammer_Curls',
+ '인클라인 덤벨 컬':'Incline_Dumbbell_Curl',
+ '프리처 컬':'Preacher_Curl',
+ '케이블 컬':'High_Cable_Curls',
+ '케이블 푸시다운':'Triceps_Pushdown',
+ '로프 푸시다운':'Triceps_Pushdown',
+ '오버헤드 케이블 익스텐션':'Cable_Rope_Overhead_Triceps_Extension',
+ '라잉 트라이셉스 익스텐션':'EZ-Bar_Skullcrusher',
+ '클로즈그립 벤치프레스':'Close-Grip_Barbell_Bench_Press',
+ '딥스':'Dips_-_Triceps_Version',
+ '바벨 백 스쿼트':'Barbell_Squat',
+ '프론트 스쿼트':'Front_Squat_Clean_Grip',
+ '고블릿 스쿼트':'Goblet_Squat',
+ '레그 프레스':'Leg_Press',
+ '레그 익스텐션':'Leg_Extensions',
+ '레그 컬':'Lying_Leg_Curls',
+ '불가리안 스플릿 스쿼트':'Dumbbell_Lunges',
+ '런지':'Dumbbell_Lunges',
+ '힙 쓰러스트':'Barbell_Hip_Thrust',
+ '카프 레이즈':'Standing_Calf_Raises',
+ '힙 어브덕션':'Thigh_Abductor',
+ '힙 어덕션':'Thigh_Adductor',
+ '크런치':'Crunches',
+ '행잉 레그 레이즈':'Hanging_Leg_Raise',
+ '플랭크':'Plank',
+ '케이블 크런치':'Cable_Crunch',
+ '러시안 트위스트':'Russian_Twist',
+ '데드 버그':'Dead_Bug',
+ '트레드밀 걷기':'Walking_Treadmill',
+ '트레드밀 달리기':'Jogging_Treadmill',
+ '실내 자전거':'Bicycling_Stationary',
+ '일립티컬':'Elliptical_Trainer',
+ '로잉 머신':'Rowing_Stationary',
+ '파머스 워크':'Farmers_Walk',
+ '백 익스텐션':'Hyperextensions_Back_Extensions'
+};
 function exerciseArt(x){
- const name=x.name||'',cat=x.category||'기타';
- // Sprite order: bench press, incline DB press, cable fly, lat pulldown,
- // barbell row, lateral raise, preacher curl, triceps pushdown, barbell squat.
- const exact={
-  '벤치프레스':0,'인클라인 덤벨프레스':1,'케이블 플라이':2,
-  '랫풀다운':3,'와이드 랫풀다운':3,'언더그립 랫풀다운':3,
-  '바벨 로우':4,'사이드 레터럴 레이즈':5,'프리처 컬':6,
-  '케이블 푸시다운':7,'로프 푸시다운':7,'바벨 백 스쿼트':8
- };
- let index=exact[name];
- // Similar variants reuse only when the equipment and movement pattern match.
- if(index===undefined){
-  if(name==='체스트 프레스 머신'||name==='디클라인 벤치프레스') index=0;
-  else if(name==='덤벨 벤치프레스') index=1;
-  else if(name==='펙덱 플라이') index=2;
-  else if(name==='친업'||name==='풀업') index=3;
-  else if(name==='티바 로우') index=4;
-  else if(name==='케이블 레터럴 레이즈') index=5;
-  else if(name==='케이블 컬') index=6;
-  else if(name==='프론트 스쿼트') index=8;
+ const slug=EXERCISE_PHOTOS[x.name];
+ if(slug){
+  const src='https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/'+slug+'/0.jpg';
+  return `<img class="exercise-art exercise-photo" src="${src}" alt="${escapeHTML(x.name)} 실제 운동 자세와 사용 기구" loading="lazy" decoding="async">`;
  }
- const positions=['0% 0%','50% 0%','100% 0%','0% 50%','50% 50%','100% 50%','0% 100%','50% 100%','100% 100%'];
- if(index===undefined){
-  // Keep unsupported exercises visually neutral rather than showing a misleading piece of equipment.
-  const fallback={'가슴':0,'등':3,'어깨':5,'이두':6,'삼두':7,'하체':8,'복근':8,'유산소':8,'기타':4};
-  index=fallback[cat]??4;
- }
- return `<div class="exercise-art tile-${index}" role="img" aria-label="${escapeHTML(name)} 운동 자세와 타겟 근육" style="background-position:${positions[index]}"></div>`;
+ // No incorrect equipment photo: custom/unmatched exercises get a neutral muscle-group placeholder.
+ return `<div class="exercise-art exercise-placeholder" role="img" aria-label="${escapeHTML(x.name)} 개별 사진 준비 중"><span>${escapeHTML(x.category||'운동')}</span><b>${escapeHTML(x.primary||'타겟 근육')}</b><small>개별 운동 이미지 준비 중</small></div>`;
 }
 function allExercises(){return [...LIB.map((x,i)=>({id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true})),...(window.customExerciseCache||[])];}
 async function refreshCustom(){window.customExerciseCache=await get('customExercises');}
