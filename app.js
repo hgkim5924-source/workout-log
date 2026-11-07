@@ -97,92 +97,18 @@ const LIB=[
 ];
 let selectedCategory='가슴', selectedExercise=null;
 const muscleKey=c=>({'가슴':'chest','등':'back','어깨':'shoulder','이두':'biceps','삼두':'triceps','하체':'legs','복근':'abs','유산소':'cardio','기타':'other'}[c]||'other');
-const EXERCISE_PHOTOS={
- '벤치프레스':'Barbell_Bench_Press_-_Medium_Grip',
- '인클라인 벤치프레스':'Barbell_Incline_Bench_Press_-_Medium_Grip',
- '디클라인 벤치프레스':'Decline_Barbell_Bench_Press',
- '덤벨 벤치프레스':'Dumbbell_Bench_Press',
- '인클라인 덤벨프레스':'Incline_Dumbbell_Press',
- '덤벨 플라이':'Dumbbell_Flyes',
- '케이블 플라이':'Cable_Crossover',
- '펙덱 플라이':'Butterfly',
- '체스트 프레스 머신':'Leverage_Chest_Press',
- '푸시업':'Pushups',
- '데드리프트':'Barbell_Deadlift',
- '루마니안 데드리프트':'Romanian_Deadlift',
- '랫풀다운':'Close-Grip_Front_Lat_Pulldown',
- '와이드 랫풀다운':'Wide-Grip_Lat_Pulldown',
- '언더그립 랫풀다운':'Close-Grip_Front_Lat_Pulldown',
- '풀업':'Pullups',
- '친업':'Chin-Up',
- '바벨 로우':'Bent_Over_Barbell_Row',
- '덤벨 원암 로우':'One-Arm_Dumbbell_Row',
- '시티드 케이블 로우':'Seated_Cable_Rows',
- '체스트 서포티드 로우':'Lying_T-Bar_Row',
- '티바 로우':'T-Bar_Row_with_Handle',
- '스트레이트 암 풀다운':'Straight-Arm_Pulldown',
- '오버헤드 프레스':'Barbell_Shoulder_Press',
- '덤벨 숄더 프레스':'Dumbbell_Shoulder_Press',
- '아놀드 프레스':'Arnold_Dumbbell_Press',
- '사이드 레터럴 레이즈':'Side_Lateral_Raise',
- '케이블 레터럴 레이즈':'Cable_Seated_Lateral_Raise',
- '프론트 레이즈':'Front_Dumbbell_Raise',
- '리어 델트 플라이':'Cable_Rear_Delt_Fly',
- '페이스 풀':'Face_Pull',
- '업라이트 로우':'Standing_Dumbbell_Upright_Row',
- '바벨 컬':'Barbell_Curl',
- '덤벨 컬':'Dumbbell_Bicep_Curl',
- '해머 컬':'Hammer_Curls',
- '인클라인 덤벨 컬':'Incline_Dumbbell_Curl',
- '프리처 컬':'Preacher_Curl',
- '케이블 컬':'High_Cable_Curls',
- '케이블 푸시다운':'Triceps_Pushdown',
- '로프 푸시다운':'Triceps_Pushdown',
- '오버헤드 케이블 익스텐션':'Cable_Rope_Overhead_Triceps_Extension',
- '라잉 트라이셉스 익스텐션':'EZ-Bar_Skullcrusher',
- '클로즈그립 벤치프레스':'Close-Grip_Barbell_Bench_Press',
- '딥스':'Dips_-_Triceps_Version',
- '바벨 백 스쿼트':'Barbell_Squat',
- '프론트 스쿼트':'Front_Squat_Clean_Grip',
- '고블릿 스쿼트':'Goblet_Squat',
- '레그 프레스':'Leg_Press',
- '레그 익스텐션':'Leg_Extensions',
- '레그 컬':'Lying_Leg_Curls',
- '불가리안 스플릿 스쿼트':'Dumbbell_Lunges',
- '런지':'Dumbbell_Lunges',
- '힙 쓰러스트':'Barbell_Hip_Thrust',
- '카프 레이즈':'Standing_Calf_Raises',
- '힙 어브덕션':'Thigh_Abductor',
- '힙 어덕션':'Thigh_Adductor',
- '크런치':'Crunches',
- '행잉 레그 레이즈':'Hanging_Leg_Raise',
- '플랭크':'Plank',
- '케이블 크런치':'Cable_Crunch',
- '러시안 트위스트':'Russian_Twist',
- '데드 버그':'Dead_Bug',
- '트레드밀 걷기':'Walking_Treadmill',
- '트레드밀 달리기':'Jogging_Treadmill',
- '실내 자전거':'Bicycling_Stationary',
- '일립티컬':'Elliptical_Trainer',
- '로잉 머신':'Rowing_Stationary',
- '파머스 워크':'Farmers_Walk',
- '백 익스텐션':'Hyperextensions_Back_Extensions'
-};
-function exerciseArt(x){
- const slug=EXERCISE_PHOTOS[x.name];
- if(slug){
-  const src='https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/'+slug+'/0.jpg';
-  return `<img class="exercise-art exercise-photo" src="${src}" alt="${escapeHTML(x.name)} 실제 운동 자세와 사용 기구" loading="lazy" decoding="async">`;
- }
- // No incorrect equipment photo: custom/unmatched exercises get a neutral muscle-group placeholder.
- return `<div class="exercise-art exercise-placeholder" role="img" aria-label="${escapeHTML(x.name)} 개별 사진 준비 중"><span>${escapeHTML(x.category||'운동')}</span><b>${escapeHTML(x.primary||'타겟 근육')}</b><small>개별 운동 이미지 준비 중</small></div>`;
+function muscleMap(x){
+ const p=(x.primary||'').toLowerCase(), q=(x.secondary||'').toLowerCase();
+ const targets={chest:['대흉근','가슴'],back:['광배근','승모근','능형근','중부 등'],shoulder:['삼각근'],arms:['이두근','삼두근','전완근'],abs:['복직근','복횡근','복사근','코어'],glutes:['둔근'],quads:['대퇴사두근'],hams:['햄스트링'],calves:['비복근','가자미근','종아리']};
+ const cls=k=>targets[k].some(t=>p.includes(t))?'primary':targets[k].some(t=>q.includes(t))?'secondary':'';
+ const m=(k,d)=>'<path class="muscle '+cls(k)+'" d="'+d+'"/>';
+ const base='<path class="base" d="M40 12 Q30 14 25 25 L12 43 L20 69 L29 48 L28 112 L25 147 L29 188 L39 188 L45 145 L51 145 L58 188 L68 188 L65 147 L62 112 L61 48 L70 69 L80 43 L65 25 Q59 14 50 12Z"/>';
+ const front='<g transform="translate(5 0)">'+base+m('shoulder','M25 27 Q33 19 43 27 L40 42 L28 43Z')+m('shoulder','M50 27 Q60 19 67 27 L64 43 L53 42Z')+m('chest','M29 43 Q39 36 49 43 L48 58 L30 58Z')+m('chest','M51 43 Q61 36 64 43 L63 58 L51 58Z')+m('arms','M17 48 L27 45 L25 68 L18 67Z')+m('abs','M39 60 L54 60 L56 103 L49 109 L38 103Z')+m('quads','M29 112 L48 112 L44 151 L34 177 L27 170Z')+m('quads','M51 112 L62 112 L64 170 L57 177 L49 151Z')+m('calves','M29 176 L39 176 L36 211 L28 211Z')+'</g>';
+ const back='<g transform="translate(112 0)">'+base+m('shoulder','M25 27 Q33 19 43 27 L40 42 L28 43Z')+m('shoulder','M50 27 Q60 19 67 27 L64 43 L53 42Z')+m('back','M31 47 L43 55 L46 91 L34 101 L28 76Z')+m('back','M55 55 L67 47 L70 76 L64 101 L52 91Z')+m('arms','M17 48 L27 45 L25 68 L18 67Z')+m('glutes','M29 108 L48 108 L49 133 L36 139 L28 126Z')+m('glutes','M51 108 L62 108 L64 126 L56 139 L49 133Z')+m('hams','M29 137 L46 137 L43 174 L34 181 L27 170Z')+m('hams','M51 137 L64 137 L66 170 L58 181 L49 174Z')+m('calves','M29 176 L39 176 L36 211 L28 211Z')+'</g>';
+ return '<svg class="muscle-map" viewBox="0 0 205 220" role="img" aria-label="'+escapeHTML(x.name)+' 타겟 근육 도식">'+front+back+'<text x="53" y="219">전면</text><text x="158" y="219">후면</text></svg>';
 }
-function exerciseGallery(x){
- const slug=EXERCISE_PHOTOS[x.name];
- if(!slug)return exerciseArt(x);
- const base='https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/'+slug+'/';
- return `<div class="exercise-gallery"><figure><img src="${base}0.jpg" alt="${escapeHTML(x.name)} 시작 자세" loading="lazy" decoding="async"><figcaption>시작 자세</figcaption></figure><figure><img src="${base}1.jpg" alt="${escapeHTML(x.name)} 동작 자세" loading="lazy" decoding="async"><figcaption>동작 자세</figcaption></figure></div>`;
-}
+function exerciseArt(x){return muscleMap(x)}
+function exerciseGallery(x){return muscleMap(x)}
 function allExercises(){return [...LIB.map((x,i)=>({id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true})),...(window.customExerciseCache||[])];}
 async function refreshCustom(){window.customExerciseCache=await get('customExercises');}
 function renderCategories(){ $('#categoryChips').innerHTML=CATS.map(c=>`<button class="category-chip ${c===selectedCategory?'active':''}" data-cat="${c}">${c}</button>`).join('');document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;renderCategories();renderLibrary()});}
