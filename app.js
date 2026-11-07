@@ -99,25 +99,32 @@ let selectedCategory='가슴', selectedExercise=null;
 const muscleKey=c=>({'가슴':'chest','등':'back','어깨':'shoulder','이두':'biceps','삼두':'triceps','하체':'legs','복근':'abs','유산소':'cardio','기타':'other'}[c]||'other');
 function exerciseArt(x){
  const name=x.name||'',cat=x.category||'기타';
- let col=0,row=0;
- if(cat==='가슴'){
-   if(/플라이|펙덱/.test(name)) {col=2;row=0}
-   else if(/인클라인/.test(name)||/덤벨 벤치/.test(name)){col=1;row=0}
-   else {col=0;row=0}
- }else if(cat==='등'){
-   if(/로우|티바/.test(name)){col=1;row=1}
-   else if(/데드리프트|굿모닝|백 익스텐션/.test(name)){col=1;row=1}
-   else {col=0;row=1}
- }else if(cat==='어깨'){
-   if(/레이즈|페이스 풀|업라이트/.test(name)){col=2;row=1}
-   else {col=2;row=1}
- }else if(cat==='이두'){col=0;row=2}
- else if(cat==='삼두'){col=1;row=2}
- else if(cat==='하체'){col=2;row=2}
- else if(cat==='복근'){col=2;row=2}
- else if(cat==='유산소'){col=2;row=2}
+ // Sprite order: bench press, incline DB press, cable fly, lat pulldown,
+ // barbell row, lateral raise, preacher curl, triceps pushdown, barbell squat.
+ const exact={
+  '벤치프레스':0,'인클라인 덤벨프레스':1,'케이블 플라이':2,
+  '랫풀다운':3,'와이드 랫풀다운':3,'언더그립 랫풀다운':3,
+  '바벨 로우':4,'사이드 레터럴 레이즈':5,'프리처 컬':6,
+  '케이블 푸시다운':7,'로프 푸시다운':7,'바벨 백 스쿼트':8
+ };
+ let index=exact[name];
+ // Similar variants reuse only when the equipment and movement pattern match.
+ if(index===undefined){
+  if(name==='체스트 프레스 머신'||name==='디클라인 벤치프레스') index=0;
+  else if(name==='덤벨 벤치프레스') index=1;
+  else if(name==='펙덱 플라이') index=2;
+  else if(name==='친업'||name==='풀업') index=3;
+  else if(name==='티바 로우') index=4;
+  else if(name==='케이블 레터럴 레이즈') index=5;
+  else if(name==='케이블 컬') index=6;
+  else if(name==='프론트 스쿼트') index=8;
+ }
  const positions=['0% 0%','50% 0%','100% 0%','0% 50%','50% 50%','100% 50%','0% 100%','50% 100%','100% 100%'];
- const index=row*3+col;
+ if(index===undefined){
+  // Keep unsupported exercises visually neutral rather than showing a misleading piece of equipment.
+  const fallback={'가슴':0,'등':3,'어깨':5,'이두':6,'삼두':7,'하체':8,'복근':8,'유산소':8,'기타':4};
+  index=fallback[cat]??4;
+ }
  return `<div class="exercise-art tile-${index}" role="img" aria-label="${escapeHTML(name)} 운동 자세와 타겟 근육" style="background-position:${positions[index]}"></div>`;
 }
 function allExercises(){return [...LIB.map((x,i)=>({id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true})),...(window.customExerciseCache||[])];}
