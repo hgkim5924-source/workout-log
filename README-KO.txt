@@ -24,3 +24,8 @@ WORKOUT LOG v2 - 운동 라이브러리 업데이트
 - 기존 IndexedDB 저장소 이름과 키(logs/body)를 유지하므로 기존 기록을 지우지 않습니다.
 - 기록 데이터는 아이폰 내부에만 저장됩니다. 업데이트 전 설정에서 JSON 백업을 권장합니다.
 - 운동 그림은 운동 부위를 강조한 자체 제작 인체 도식입니다. 개별 운동 동작을 정확히 보여주는 해부학 일러스트는 후속 확장 대상으로 남겨두었습니다.
+
+
+운동 동작 참고 이미지
+- Free Exercise DB (Unlicense / Public Domain): https://github.com/yuhonas/free-exercise-db
+- 운동별 시작 자세와 동작 자세 이미지를 참조합니다.
