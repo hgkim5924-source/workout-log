@@ -166,13 +166,13 @@ function muscleMap(x){
  return '<svg class="muscle-map" viewBox="0 0 205 226" role="img" aria-label="'+escapeHTML(x.name)+' 근육 해부 도식">'+front+back+'<text x="52" y="224">전면</text><text x="163" y="224">후면</text></svg>';
 }
 const EXERCISE_IMAGE_IDS={
-'벤치프레스':'Barbell_Bench_Press_-_Medium_Grip','인클라인 벤치프레스':'Barbell_Incline_Bench_Press_-_Medium_Grip','디클라인 벤치프레스':'Decline_Barbell_Bench_Press','덤벨 벤치프레스':'Dumbbell_Bench_Press','인클라인 덤벨프레스':'Incline_Dumbbell_Press','덤벨 플라이':'Dumbbell_Flyes','케이블 플라이':'Cable_Crossover','펙덱 플라이':'Butterfly','체스트 프레스 머신':'Machine_Bench_Press','푸시업':'Push-Up',
-'데드리프트':'Barbell_Deadlift','루마니안 데드리프트':'Stiff-Legged_Barbell_Deadlift','랫풀다운':'Full_Range-Of-Motion_Lat_Pulldown','와이드 랫풀다운':'Full_Range-Of-Motion_Lat_Pulldown','언더그립 랫풀다운':'Close-Grip_Front_Lat_Pulldown','풀업':'Pull-Up','친업':'Chin-Up','바벨 로우':'Bent_Over_Barbell_Row','덤벨 원암 로우':'One-Arm_Dumbbell_Row','시티드 케이블 로우':'Seated_Cable_Rows','체스트 서포티드 로우':'Dumbbell_Incline_Row','티바 로우':'Lying_T-Bar_Row','스트레이트 암 풀다운':'Bent-Arm_Barbell_Pullover',
+'벤치프레스':'Barbell_Bench_Press_-_Medium_Grip','인클라인 벤치프레스':'Barbell_Incline_Bench_Press_-_Medium_Grip','디클라인 벤치프레스':'Decline_Barbell_Bench_Press','덤벨 벤치프레스':'Dumbbell_Bench_Press','인클라인 덤벨프레스':'Incline_Dumbbell_Press','덤벨 플라이':'Dumbbell_Flyes','케이블 플라이':'Cable_Crossover','펙덱 플라이':'Butterfly','체스트 프레스 머신':'Machine_Bench_Press','푸시업':'Incline_Push-Up_Medium',
+'데드리프트':'Barbell_Deadlift','루마니안 데드리프트':'Barbell_Deadlift','랫풀다운':'Full_Range-Of-Motion_Lat_Pulldown','와이드 랫풀다운':'Full_Range-Of-Motion_Lat_Pulldown','언더그립 랫풀다운':'Close-Grip_Front_Lat_Pulldown','풀업':'Band_Assisted_Pull-Up','친업':'Chin-Up','바벨 로우':'Bent_Over_Barbell_Row','덤벨 원암 로우':'One-Arm_Dumbbell_Row','시티드 케이블 로우':'Elevated_Cable_Rows','체스트 서포티드 로우':'Dumbbell_Incline_Row','티바 로우':'Lying_T-Bar_Row','스트레이트 암 풀다운':'Bent-Arm_Barbell_Pullover',
 '오버헤드 프레스':'Barbell_Shoulder_Press','덤벨 숄더 프레스':'Dumbbell_Shoulder_Press','아놀드 프레스':'Arnold_Dumbbell_Press','사이드 레터럴 레이즈':'Lateral_Raise_-_With_Bands','케이블 레터럴 레이즈':'Cable_Seated_Lateral_Raise','프론트 레이즈':'Front_Dumbbell_Raise','리어 델트 플라이':'Cable_Rear_Delt_Fly','페이스 풀':'Face_Pull','업라이트 로우':'Dumbbell_One-Arm_Upright_Row',
-'바벨 컬':'Barbell_Curl','덤벨 컬':'Dumbbell_Bicep_Curl','해머 컬':'Hammer_Curls','인클라인 덤벨 컬':'Incline_Dumbbell_Curl','프리처 컬':'Cable_Preacher_Curl','케이블 컬':'Cable_Biceps_Curl',
+'바벨 컬':'Barbell_Curl','덤벨 컬':'Dumbbell_Bicep_Curl','해머 컬':'Hammer_Curls','인클라인 덤벨 컬':'Incline_Dumbbell_Curl','프리처 컬':'Cable_Preacher_Curl','케이블 컬':'High_Cable_Curls',
 '케이블 푸시다운':'Cable_Incline_Pushdown','로프 푸시다운':'Cable_Incline_Pushdown','오버헤드 케이블 익스텐션':'Cable_Rope_Overhead_Triceps_Extension','라잉 트라이셉스 익스텐션':'EZ-Bar_Skullcrusher','클로즈그립 벤치프레스':'Close-Grip_Barbell_Bench_Press','딥스':'Dips_-_Triceps_Version',
 '바벨 백 스쿼트':'Barbell_Squat','프론트 스쿼트':'Front_Squat_Clean_Grip','고블릿 스쿼트':'Goblet_Squat','레그 프레스':'Leg_Press','레그 익스텐션':'Leg_Extensions','레그 컬':'Lying_Leg_Curls','불가리안 스플릿 스쿼트':'Dumbbell_Lunges','런지':'Dumbbell_Lunges','힙 쓰러스트':'Barbell_Hip_Thrust','카프 레이즈':'Donkey_Calf_Raises',
-'크런치':'Crunches','행잉 레그 레이즈':'Hanging_Leg_Raise','플랭크':'Plank','케이블 크런치':'Cable_Crunch','러시안 트위스트':'Cable_Russian_Twists','데드 버그':'Dead_Bug'
+'크런치':'Crunches','행잉 레그 레이즈':'Hanging_Leg_Raise','케이블 크런치':'Cable_Crunch','러시안 트위스트':'Cable_Russian_Twists','데드 버그':'Dead_Bug'
 };
 const EXERCISE_IMAGE_BASE='https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
 function imagePair(x){const id=EXERCISE_IMAGE_IDS[x.name];return id?[EXERCISE_IMAGE_BASE+id+'/0.jpg',EXERCISE_IMAGE_BASE+id+'/1.jpg']:null}
