@@ -192,8 +192,6 @@ const LEGACY_SOURCE_IDS={
 '파머스 워크':'Farmers_Walk',
 '백 익스텐션':'Hyperextensions_Back_Extensions'
 };
-const EXERCISE_SOURCE_COMMIT='ed41bb3a262fee9dd8d7d0aa3437696dcef601ed';
-const EXERCISE_ASSET_BASE='https://raw.githubusercontent.com/gengyueworks/gym-exercise-guide/'+EXERCISE_SOURCE_COMMIT+'/assets';
 const MUSCLE_NAMES_KO={
 abdominals:'복근',abs:'복근',pectorals:'대흉근',chest:'가슴',lats:'광배근',latissimus_dorsi:'광배근',
 deltoids:'삼각근',shoulders:'삼각근',biceps:'이두근',triceps:'삼두근',forearms:'전완근',brachialis:'상완근',
@@ -242,22 +240,43 @@ function translateExerciseName(en){
  for(const [re,value] of rules)out=out.replace(re,value);
  return out.replace(/[_-]+/g,' ').replace(/\s+/g,' ').replace(/\s+,/g,',').trim();
 }
-function sourceMuscleUrl(x){
- return x.sourceId?EXERCISE_ASSET_BASE+'/muscle/'+x.sourceId+'.svg':'';
+function exerciseArtSvg(x){
+ const n=x.name||'',e=x.equipment||'';
+ const bench=/벤치프레스|체스트 프레스/.test(n),dead=/데드리프트/.test(n),squat=/스쿼트|런지|레그 프레스|힙 쓰러스트/.test(n),row=/로우/.test(n),pull=/랫풀다운|풀업|친업/.test(n),curl=/컬/.test(n),raise=/레이즈|프레스/.test(n),core=/크런치|플랭크|레그 레이즈|트위스트|데드 버그/.test(n),cardio=/트레드밀|자전거|일립티컬|로잉/.test(n),fly=/플라이/.test(n),extend=/푸시다운|익스텐션/.test(n);
+ let pose=bench?'bench':dead?'hinge':squat?'squat':row?'row':pull?'pull':curl?'curl':raise?'raise':core?'core':cardio?'cardio':fly?'fly':extend?'extend':'stand';
+ const P={
+ stand:{h:[111,39],a:[[101,65,79,105],[121,65,143,105]],l:[[105,120,91,183],[117,120,131,183]]},
+ bench:{h:[66,100],a:[[87,99,91,55],[91,55,154,55]],l:[[145,111,159,151],[159,151,187,151]]},
+ hinge:{h:[78,77],a:[[93,91,69,139],[99,91,151,139]],l:[[128,117,104,174],[128,117,154,174]]},
+ squat:{h:[111,60],a:[[101,82,78,101],[121,82,144,101]],l:[[105,120,81,151],[81,151,83,185],[117,120,141,151],[141,151,139,185]]},
+ row:{h:[79,72],a:[[94,86,104,111],[94,86,146,111]],l:[[126,118,106,178],[126,118,155,178]]},
+ pull:{h:[111,74],a:[[99,94,76,54],[123,94,146,54]],l:[[105,132,96,184],[117,132,126,184]]},
+ curl:{h:[111,40],a:[[101,65,82,92],[121,65,140,92]],l:[[105,120,96,184],[117,120,126,184]]},
+ raise:{h:[111,40],a:[[101,65,68,67],[121,65,154,67]],l:[[105,120,96,184],[117,120,126,184]]},
+ core:{h:[75,88],a:[[94,100,79,122],[98,102,111,139]],l:[[129,119,157,139],[157,139,182,136]]},
+ cardio:{h:[111,48],a:[[101,72,83,100],[121,72,141,100]],l:[[105,120,88,151],[88,151,76,179],[117,120,138,151],[138,151,152,179]]},
+ fly:{h:[111,40],a:[[101,66,62,80],[121,66,160,80]],l:[[105,120,96,184],[117,120,126,184]]},
+ extend:{h:[111,40],a:[[101,65,88,112],[121,65,134,112]],l:[[105,120,96,184],[117,120,126,184]]}
+ }[pose];
+ const seg=(a,w,c)=>a.map(v=>'<path d="M'+v[0]+' '+v[1]+' L'+v[2]+' '+v[3]+'" fill="none" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round"/>').join('');
+ const dots=a=>a.flatMap(v=>[[v[0],v[1]],[v[2],v[3]]]).map(v=>'<circle cx="'+v[0]+'" cy="'+v[1]+'" r="4.5" fill="#d4ddd5" stroke="#647168" stroke-width="2"/>').join('');
+ const body='<path d="M96 58 Q111 49 126 58 L130 104 Q126 120 111 124 Q96 120 92 104Z" fill="url(#body)" stroke="#d0d9d1" stroke-width="1.2"/><path d="M98 66 Q111 58 124 66 L123 83 Q111 91 99 83Z" fill="#b6f36b" opacity=".9"/><path d="M98 91 Q111 98 124 91 L122 108 Q111 116 100 108Z" fill="#6da9ff" opacity=".85"/>';
+ const head='<circle cx="'+P.h[0]+'" cy="'+P.h[1]+'" r="10" fill="url(#body)" stroke="#d0d9d1" stroke-width="1.2"/>';
+ let gear='';
+ if(/바벨/.test(e)||/바벨/.test(n))gear+='<path d="M24 35H198" stroke="#d2ddd4" stroke-width="4"/><path d="M36 25v20m-7 -20v20m157 -20v20m-7 -20v20" stroke="#b6f36b" stroke-width="5"/>';
+ if(/덤벨/.test(e)||/덤벨/.test(n))gear+='<g stroke="#b6f36b" stroke-width="5" stroke-linecap="round"><path d="M58 82h18m-14 -6v12m10 -12v12M146 82h18m-14 -6v12m10 -12v12"/></g>';
+ if(/케이블/.test(e)||/케이블/.test(n))gear+='<path d="M190 22V148M184 22h12M190 148l-28 -50" stroke="#89978c" stroke-width="3" fill="none"/><circle cx="190" cy="22" r="5" fill="#b6f36b"/>';
+ if(/머신/.test(e)||/머신/.test(n))gear+='<path d="M34 30v150m0 -6h32m-32 -98h22" stroke="#7b8b80" stroke-width="6" fill="none"/><rect x="24" y="24" width="20" height="10" rx="3" fill="#b6f36b"/>';
+ if(pose==='bench')gear+='<path d="M38 145h126l-7 10H44Z" fill="#6c7b70"/><path d="M51 155v25m99 -25v25" stroke="#7b8b80" stroke-width="5"/>';
+ if(pose==='cardio')gear+='<path d="M26 178h170M43 178l14 -35h65l28 35M143 142l28 -35" stroke="#7b8b80" stroke-width="5" fill="none"/>';
+ const title=escapeHTML(n);
+ return '<svg class="exercise-art-svg" viewBox="0 0 220 210" role="img" aria-label="'+title+' 운동 일러스트" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="body" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#e0e8e1"/><stop offset=".48" stop-color="#87958b"/><stop offset="1" stop-color="#46564b"/></linearGradient><radialGradient id="bg"><stop stop-color="#29372d"/><stop offset="1" stop-color="#101712"/></radialGradient></defs><rect width="220" height="210" rx="13" fill="url(#bg)"/>'+gear+'<g opacity=".95">'+seg(P.a,8,'#aeb8b0')+seg(P.l,10,'#aeb8b0')+body+head+dots(P.a)+dots(P.l)+'</g><path d="M15 193H205" stroke="#344238"/><text x="110" y="205" text-anchor="middle" font-size="7" fill="#aab8ac">'+title+'</text></svg>';
 }
-function exerciseArt(x){
- const src=sourceMuscleUrl(x);
- return src?'<img class="movement-thumb anatomy-thumb" loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHTML(x.name)+' 타깃 근육 해부학 도식" onerror="this.style.display=\'none\'">':'<span class="no-exercise-art">도식 없음</span>';
-}
-function exerciseGallery(x){
- const muscle=sourceMuscleUrl(x);
- if(!muscle)return '<div class="source-visual-empty">이 종목에 정확히 연결된 타깃 근육 해부학 도식이 없습니다.<small>사람 사진이나 다른 운동의 그림은 대신 표시하지 않습니다.</small></div>';
- return '<div class="anatomy-only"><h4>타깃 근육 해부학 도식</h4><img class="source-muscle-svg" src="'+muscle+'" alt="'+escapeHTML(x.name)+' 타깃 근육 강조 해부학 도식" loading="lazy" decoding="async" onerror="this.closest(\'.anatomy-only\').classList.add(\'image-failed\')"><p>빨강 · 주요 근육　 주황 · 협력 근육</p></div>';
-}
+function exerciseArt(x){return exerciseArtSvg(x)}
+function exerciseGallery(x){return '<div class="exercise-visual-original"><h4>운동 자세 · 타깃 근육</h4>'+exerciseArtSvg(x)+'<p><span>초록 · 주 타깃</span><span>파랑 · 보조 타깃</span></p></div>'}
 function allExercises(){
  const legacy=LIB.map((x,i)=>{
-  const sourceId=LEGACY_SOURCE_IDS[x[1]]||null;
-  return {id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true,sourceId};
+  return {id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true};
  });
  return [...legacy,...(window.customExerciseCache||[])];
 }
@@ -293,4 +312,4 @@ async function importData(file){try{const data=JSON.parse(await file.text());if(
 $('#weightUnit').onchange=async e=>{applyWeightUnit(e.target.value);await put('settings',{weightUnit});toast(`중량 단위를 ${weightUnit}로 변경했습니다.`)};
 $('#backupBtn').onclick=exportData;$('#exportBtn').onclick=exportData;$('#importFile').onchange=e=>e.target.files[0]&&importData(e.target.files[0]);$('#clearBtn').onclick=async()=>{if(confirm('모든 운동 및 신체 기록을 영구 삭제할까요?')){await put('logs',[]);await put('body',[]);toast('모든 기록을 삭제했습니다.');renderHome()}};
 
-(async()=>{db=await openDB();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#weightUnit').value=weightUnit;await put('exerciseCatalog',[]);await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
+(async()=>{db=await openDB();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#weightUnit').value=weightUnit;await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
