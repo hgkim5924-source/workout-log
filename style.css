@@ -130,3 +130,26 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
  .library-list{max-height:520px}
  .exercise-detail{position:sticky;top:8px}
 }
+
+/* v9: detailed anatomical muscle atlas */
+.muscle-map{display:block;width:100%;height:auto;max-height:260px;overflow:visible}
+.muscle-map .base{fill:#35443c;stroke:#9aa99e;stroke-width:1.15;stroke-linejoin:round}
+.muscle-map .muscle{fill:#596960;stroke:#19241e;stroke-width:1.05;stroke-linejoin:round;transition:fill .15s ease}
+.muscle-map .muscle.primary{fill:#b7f36b;stroke:#d2ff9d;stroke-width:1.2;filter:drop-shadow(0 0 2px #b7f36b66)}
+.muscle-map .muscle.secondary{fill:#69a9ff;stroke:#a6ccff;stroke-width:1.1}
+.muscle-map text{font-size:8px;fill:#aab7ae;text-anchor:middle;font-weight:700}
+.mini-anatomy{width:66px;flex:0 0 66px;padding:3px;background:#101712;border:1px solid #29362e;border-radius:10px}
+.mini-anatomy .muscle-map{height:76px;max-height:76px}
+.library-item{align-items:center}
+.exercise-detail{min-width:0}
+.detail-art{min-width:0;display:flex;justify-content:center;align-items:center;background:#101712;border:1px solid #34443a;border-radius:14px;padding:8px}
+.detail-art .muscle-map{width:min(100%,310px);max-height:280px}
+@media(max-width:600px){
+ .library-list{max-height:310px}
+ .library-item{min-height:74px}
+ .mini-anatomy{width:60px;flex-basis:60px}
+ .mini-anatomy .muscle-map{height:70px;max-height:70px}
+ .exercise-detail{grid-template-columns:120px minmax(0,1fr);padding:10px}
+ .detail-art{padding:5px}
+ .detail-art .muscle-map{max-height:190px}
+}
