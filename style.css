@@ -403,3 +403,9 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .movement-empty small{display:block;color:#7f8c82;font-size:9px;line-height:1.5}
 .detail-art:has(.exercise-visuals){padding:0!important;border:0!important;background:transparent!important;overflow:visible!important}
 @media(max-width:390px){.exercise-visuals{gap:7px}.exercise-visual-panel figcaption{font-size:9px;padding:7px 3px 4px}.movement-frame,.anatomy-frame{padding:4px}}
+
+/* Subtle pulse on highlighted muscles while the movement demo loops */
+.movement-detail-image .target-primary{filter:drop-shadow(0 0 8px #b6f36b88);animation:targetMusclePulse 2.1s ease-in-out infinite}
+.movement-detail-image .target-secondary{filter:drop-shadow(0 0 4px #60a5fa55)}
+@keyframes targetMusclePulse{0%,100%{opacity:1}50%{opacity:.78}}
+@media(prefers-reduced-motion:reduce){.movement-detail-image .target-primary{animation:none}}
