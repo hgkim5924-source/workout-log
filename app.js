@@ -111,7 +111,7 @@ const EXERCISE_PHOTOS={
  '루마니안 데드리프트':'Romanian_Deadlift',
  '랫풀다운':'Close-Grip_Front_Lat_Pulldown',
  '와이드 랫풀다운':'Wide-Grip_Lat_Pulldown',
- '언더그립 랫풀다운':'Reverse-Grip_Lat_Pulldown',
+ '언더그립 랫풀다운':'Close-Grip_Front_Lat_Pulldown',
  '풀업':'Pullups',
  '친업':'Chin-Up',
  '바벨 로우':'Bent_Over_Barbell_Row',
