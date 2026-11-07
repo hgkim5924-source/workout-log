@@ -200,3 +200,23 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
  .exercise-visuals .movement-gallery img{height:96px}
  .detail-anatomy .muscle-map{max-height:180px}
 }
+
+
+/* v15: larger, consistent exercise reference cards */
+.library-item{min-height:78px;gap:10px;padding:9px}
+.library-item .mini-anatomy{width:64px;flex:0 0 64px;height:62px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:#f2f2ef}
+.mini-anatomy .movement-thumb{width:100%;height:100%;max-height:62px;object-fit:contain;background:#f2f2ef;border-radius:8px}
+.exercise-visuals{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:10px}
+.exercise-visuals .movement-gallery{grid-template-columns:1fr 1fr;gap:6px}
+.exercise-visuals .movement-gallery img{height:138px;background:#f3f3f0}
+.exercise-visuals .movement-gallery figure{border-radius:10px}
+.exercise-visuals .movement-gallery figcaption{font-size:10px}
+.detail-anatomy .muscle-map{max-height:290px}
+@media(max-width:600px){
+ .library-item .mini-anatomy{width:58px;flex-basis:58px;height:58px}
+ .mini-anatomy .movement-thumb{max-height:58px}
+ .exercise-visuals{grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:7px}
+ .exercise-visuals .movement-gallery{grid-template-columns:1fr;gap:5px}
+ .exercise-visuals .movement-gallery img{height:112px}
+ .detail-anatomy .muscle-map{max-height:230px}
+}
