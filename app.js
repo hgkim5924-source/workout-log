@@ -26,6 +26,16 @@ async function loadMuscleMapCatalog(){
   console.info('MuscleMap licensed asset pack is not installed yet.');
  }
 }
+function updateMuscleMapStatus(){
+ const status=$('#muscleMapStatus');
+ if(!status)return;
+ if(!muscleMapCatalog.length){
+  status.textContent='MuscleMap 정식 라이선스 데이터 미설치 · 데이터셋을 assets/musclemap/에 설치하면 운동별 일러스트가 연결됩니다.';
+  return;
+ }
+ const matched=allExercises().filter(ex=>!!muscleMapRecord(ex)).length;
+ status.textContent=`MuscleMap ${muscleMapCatalog.length}종 데이터 로드 · 현재 운동 목록에서 정확히 연결된 ${matched}종에 일러스트 적용`;
+}
 function muscleMapRecord(exercise){
  if(!Array.isArray(muscleMapCatalog)||!muscleMapCatalog.length)return null;
  const id=exercise.muscleMapId||MUSCLEMAP_IDS[exercise.name];
@@ -41,8 +51,8 @@ function muscleMapImageUrl(exercise){
  const record=muscleMapRecord(exercise);
  const raw=record&&record.image&&(record.image.male||record.image.female);
  if(!raw)return '';
- if(/^https?:\\/\\//i.test(raw))return raw;
- const relative=String(raw).replace(/^(\\.\\/)+/,'');
+ if(/^https?:\/\//i.test(raw))return raw;
+ const relative=String(raw).replace(/^(\.\/)+/,'');
  if(!relative||relative.split('/').includes('..'))return '';
  return MUSCLEMAP_ROOT+relative;
 }
