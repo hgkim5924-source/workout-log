@@ -98,43 +98,27 @@ const LIB=[
 let selectedCategory='가슴', selectedExercise=null;
 const muscleKey=c=>({'가슴':'chest','등':'back','어깨':'shoulder','이두':'biceps','삼두':'triceps','하체':'legs','복근':'abs','유산소':'cardio','기타':'other'}[c]||'other');
 function exerciseArt(x){
- const cat=x.category, name=x.name;
- const family=/벤치|프레스|푸시업|딥스|플라이|체스트/.test(name)?'press':
- /랫풀|풀업|친업/.test(name)?'pull':
- /로우|데드리프트|파머스|백 익스텐션/.test(name)?'row':
- /스쿼트|런지|레그 프레스|불가리안|힙 쓰러스트/.test(name)?'squat':
- /컬|curl|푸시다운|익스텐션|페이스 풀/.test(name)?'curl':
- /레이즈|업라이트/.test(name)?'raise':
- /크런치|플랭크|레그 레이즈|트위스트|데드 버그/.test(name)?'core':
- /트레드밀|자전거|일립티컬|로잉/.test(name)?'cardio':'general';
- const accent='#b6f36b', secondary='#77b9a0';
- const muscle = cat==='가슴'?'M88 67 Q108 54 124 69 L119 86 Q105 94 90 83Z':
- cat==='등'?'M87 62 Q104 55 119 66 L123 91 L108 105 L87 91Z':
- cat==='어깨'?'M77 59 Q84 48 94 59 L91 76 L78 75Z M119 59 Q129 48 137 60 L135 76 L121 76Z':
- cat==='이두'?'M65 74 Q74 67 80 82 L74 101 L62 93Z M137 74 Q146 67 151 82 L144 101 L133 93Z':
- cat==='삼두'?'M61 76 L74 77 L78 99 L65 103Z M137 77 L150 76 L147 103 L134 99Z':
- cat==='하체'?'M86 103 L105 105 L101 137 L88 137Z M112 103 L130 105 L127 137 L114 137Z':
- cat==='복근'?'M96 77 L120 77 L119 111 L96 111Z':'M88 64 L124 64 L124 110 L88 110Z';
- const poses={
- press:`<path d="M24 133 H196" stroke="#59645d" stroke-width="5" stroke-linecap="round"/><path d="M53 126 L69 101 L145 101 L163 126" fill="none" stroke="#849087" stroke-width="7" stroke-linecap="round"/><path d="M50 95 L165 95" stroke="#d5ddd6" stroke-width="5" stroke-linecap="round"/><path d="M58 88 V103 M157 88 V103" stroke="#b6f36b" stroke-width="4"/><circle cx="83" cy="76" r="10" fill="url(#skin)"/><path d="M94 75 Q116 67 139 79 L148 96 L103 99 L85 88Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M105 77 L98 59 L102 51 M135 78 L143 59 L140 51" fill="none" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/><path d="M104 95 L89 119 M137 95 L154 119" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/>`,
- pull:`<path d="M35 34 H185" stroke="#aeb8b0" stroke-width="5" stroke-linecap="round"/><path d="M110 34 V48" stroke="#b6f36b" stroke-width="2"/><path d="M70 47 Q110 37 150 47" fill="none" stroke="#78847b" stroke-width="3"/><circle cx="110" cy="54" r="10" fill="url(#skin)"/><path d="M91 66 Q110 57 129 66 L137 111 L121 126 L99 126 L83 111Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M91 70 L76 49 L61 41 M129 70 L144 49 L159 41" fill="none" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/><path d="M61 41 L159 41" stroke="#cdd6ce" stroke-width="5" stroke-linecap="round"/><path d="M99 124 L94 157 M121 124 L126 157" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/>`,
- row:`<circle cx="145" cy="48" r="10" fill="url(#skin)"/><path d="M135 59 Q113 64 88 86 L77 110 L103 117 L129 90 L150 72Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M91 85 L66 108 L54 126 M105 88 L130 109 L146 126" fill="none" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/><path d="M47 128 H154" stroke="#cdd6ce" stroke-width="5" stroke-linecap="round"/><path d="M92 112 L83 153 M119 104 L135 148" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/><path d="M38 155 H172" stroke="#59645d" stroke-width="4"/>`,
- squat:`<path d="M49 62 H171" stroke="#d2dbd3" stroke-width="5" stroke-linecap="round"/><path d="M58 54 V70 M162 54 V70" stroke="#b6f36b" stroke-width="5"/><circle cx="111" cy="39" r="10" fill="url(#skin)"/><path d="M91 52 Q111 46 130 54 L136 89 L119 105 L94 99 L84 75Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M91 58 L73 62 L61 67 M130 58 L148 62 L160 67" fill="none" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/><path d="M96 99 L76 119 L67 150 M120 102 L143 120 L151 150" fill="none" stroke="url(#limb)" stroke-width="12" stroke-linecap="round"/><path d="M50 154 H172" stroke="#59645d" stroke-width="4"/>`,
- curl:`<circle cx="110" cy="37" r="11" fill="url(#skin)"/><path d="M91 52 Q110 45 129 52 L136 104 L123 121 L97 121 L84 104Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M91 60 L73 83 L82 103 L97 86 M129 60 L147 83 L139 101 L126 86" fill="none" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/><path d="M82 103 L76 116 M139 101 L151 83" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/><path d="M145 76 L159 76 M152 69 V83" stroke="#cfd8d0" stroke-width="5" stroke-linecap="round"/><path d="M99 120 L94 157 M121 120 L126 157" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/>`,
- raise:`<circle cx="110" cy="38" r="11" fill="url(#skin)"/><path d="M91 53 Q110 46 129 53 L136 107 L122 122 L98 122 L84 107Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M91 62 L66 68 L43 72 M129 62 L154 68 L177 72" fill="none" stroke="url(#limb)" stroke-width="11" stroke-linecap="round"/><path d="M40 65 L40 78 M180 65 L180 78" stroke="#d1dad2" stroke-width="5" stroke-linecap="round"/><path d="M99 121 L94 157 M121 121 L126 157" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/>`,
- core:`<path d="M24 145 H196" stroke="#59645d" stroke-width="4"/><circle cx="53" cy="91" r="10" fill="url(#skin)"/><path d="M64 91 Q91 76 126 91 L156 113 L143 126 L112 109 L81 116Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M82 111 L55 131 L42 145 M145 119 L172 137 L185 145" fill="none" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/><path d="M103 108 L90 143 M126 108 L139 143" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/>`,
- cardio:`<path d="M20 145 H200" stroke="#59645d" stroke-width="4"/><path d="M35 145 L53 84 H174 L192 145" fill="none" stroke="#7f8c82" stroke-width="4"/><circle cx="106" cy="42" r="10" fill="url(#skin)"/><path d="M97 54 L121 61 L131 91 L111 105 L88 83Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M99 63 L76 80 L62 69 M121 66 L145 79 L158 66" fill="none" stroke="url(#limb)" stroke-width="9" stroke-linecap="round"/><path d="M105 101 L82 119 L68 141 M116 101 L139 117 L155 140" fill="none" stroke="url(#limb)" stroke-width="11" stroke-linecap="round"/>`,
- general:`<circle cx="110" cy="37" r="11" fill="url(#skin)"/><path d="M91 52 Q110 45 129 52 L136 107 L122 122 L98 122 L84 107Z" fill="url(#body)" stroke="#dce4dd" stroke-width="1.5"/><path d="M91 61 L69 83 L79 105 M129 61 L151 83 L141 105" fill="none" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/><path d="M99 121 L94 157 M121 121 L126 157" stroke="url(#limb)" stroke-width="10" stroke-linecap="round"/>`
- };
- return `<svg viewBox="0 0 220 180" class="exercise-art" role="img" aria-label="${escapeHTML(name)} 동작 및 타겟 근육 일러스트">
- <defs><radialGradient id="bgArt"><stop stop-color="#344238"/><stop offset="1" stop-color="#111713"/></radialGradient><linearGradient id="body" x2="1" y2="1"><stop stop-color="#dce5dd"/><stop offset=".45" stop-color="#89968c"/><stop offset="1" stop-color="#566259"/></linearGradient><linearGradient id="limb" x2="1" y2="1"><stop stop-color="#e3ebe4"/><stop offset="1" stop-color="#78857b"/></linearGradient><linearGradient id="skin"><stop stop-color="#e6c9a8"/><stop offset="1" stop-color="#9e8066"/></linearGradient></defs>
- <rect width="220" height="180" rx="13" fill="url(#bgArt)"/>
- <g opacity=".13" stroke="#b6f36b"><path d="M10 150 H210 M10 30 H210"/></g>
- <g>${poses[family]}</g>
- <path d="${muscle}" fill="${accent}" opacity=".94" stroke="#e0ffb9" stroke-width="1.2" transform="${family==='press'?'translate(0 0)':family==='pull'||family==='row'?'translate(0 0)':''}"/>
- <path d="M8 166 H212" stroke="#6a796d" stroke-opacity=".45"/>
- <circle cx="197" cy="17" r="5" fill="${accent}"/><text x="185" y="170" text-anchor="end" font-size="8" fill="#aeb9af" letter-spacing="1">${cat.toUpperCase()}</text>
- </svg>`;
+ const name=x.name||'',cat=x.category||'기타';
+ let col=0,row=0;
+ if(cat==='가슴'){
+   if(/플라이|펙덱/.test(name)) {col=2;row=0}
+   else if(/인클라인/.test(name)||/덤벨 벤치/.test(name)){col=1;row=0}
+   else {col=0;row=0}
+ }else if(cat==='등'){
+   if(/로우|티바/.test(name)){col=1;row=1}
+   else if(/데드리프트|굿모닝|백 익스텐션/.test(name)){col=1;row=1}
+   else {col=0;row=1}
+ }else if(cat==='어깨'){
+   if(/레이즈|페이스 풀|업라이트/.test(name)){col=2;row=1}
+   else {col=2;row=1}
+ }else if(cat==='이두'){col=0;row=2}
+ else if(cat==='삼두'){col=1;row=2}
+ else if(cat==='하체'){col=2;row=2}
+ else if(cat==='복근'){col=2;row=2}
+ else if(cat==='유산소'){col=2;row=2}
+ const positions=['0% 0%','50% 0%','100% 0%','0% 50%','50% 50%','100% 50%','0% 100%','50% 100%','100% 100%'];
+ const index=row*3+col;
+ return `<div class="exercise-art tile-${index}" role="img" aria-label="${escapeHTML(name)} 운동 자세와 타겟 근육" style="background-position:${positions[index]}"></div>`;
 }
 function allExercises(){return [...LIB.map((x,i)=>({id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true})),...(window.customExerciseCache||[])];}
 async function refreshCustom(){window.customExerciseCache=await get('customExercises');}
