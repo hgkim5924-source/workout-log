@@ -37,7 +37,14 @@
       <div class="section-head"><div><p class="eyebrow">NEW SESSION</p><h2>운동 기록</h2></div></div>
       <label class="field-label" for="sessionName">운동 이름 / 분할</label>
       <input id="sessionName" class="input" placeholder="예: 등 · 이두">
-      <div class="section-head compact"><h3>운동 종목</h3><div><button class="text-btn" id="loadPrevious">↻ 지난 운동 불러오기</button> <button class="text-btn" id="addExercise">+ 종목 추가</button></div></div>
+      <div class="section-head compact"><h3>운동 종목 선택</h3><button class="text-btn" id="loadPrevious">↻ 지난 운동 불러오기</button></div>
+      <div id="exercisePicker" class="picker">
+        <div id="categoryChips" class="category-chips"></div>
+        <input id="exerciseSearch" class="input search-input" placeholder="운동 이름 검색">
+        <div class="picker-layout"><div id="libraryList" class="library-list"></div><div id="exerciseDetail" class="exercise-detail"><div class="detail-empty">운동을 선택하면 타겟 부위와 설명이 표시됩니다.</div></div></div>
+        <button class="secondary wide" id="customExerciseBtn">＋ 목록에 없는 운동 직접 추가</button>
+      </div>
+      <div class="section-head compact"><h3>오늘 기록할 운동</h3><button class="text-btn" id="addExercise">직접 이름 입력</button></div>
       <div id="exerciseList" class="stack"></div>
       <button class="primary wide" id="saveWorkout">오늘 운동 저장하기</button>
       <p class="hint">입력한 기록은 이 아이폰의 브라우저에 저장됩니다.</p>
@@ -71,7 +78,7 @@
       <label class="secondary wide import-label">백업 파일 가져오기<input id="importFile" type="file" accept="application/json"></label>
       <p class="hint">브라우저 데이터 삭제 또는 기기 변경 전에 백업 파일을 내보내세요. 이 앱은 클라우드 동기화를 하지 않습니다.</p>
       <button class="danger wide" id="clearBtn">모든 기록 삭제</button>
-      <p class="version">WORKOUT LOG · PRIVATE BUILD 1.0</p>
+      <p class="version">WORKOUT LOG · PRIVATE BUILD 2.0</p>
     </section>
   </main>
 
