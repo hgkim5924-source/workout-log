@@ -149,7 +149,7 @@ function muscleMap(x){
  const src='https://api.anatome.dev/generateImage?gender=male&view=dual&width=460&layers='+encodeURIComponent(layers||'B6F36B:chest')+'&output=raw';
  return '<img class="muscle-map external-anatomy" loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHTML(x.name)+' 전면·후면 근육 타겟 도식" onerror="this.outerHTML=\'<div class=&quot;anatomy-fallback&quot;>근육 도식을 불러오지 못했습니다</div>\'">';
 }
-function targetMuscles(text,category){
+function targetMuscles(text,category,allowFallback=true){
  const t=String(text||'').toLowerCase(), out=new Set();
  const rules=[
   [/대흉근|가슴|흉근|pector/,'chest'],
@@ -170,7 +170,7 @@ function targetMuscles(text,category){
   [/전경골근/,'tibialis']
  ];
  for(const [re,slug] of rules)if(re.test(t))out.add(slug);
- if(!out.size){
+ if(!out.size&&allowFallback){
   const fallback={
    '가슴':['chest'],'등':['upper-back','trapezius'],'어깨':['deltoids'],
    '이두':['biceps'],'삼두':['triceps'],'하체':['quadriceps','hamstring','gluteal','calves'],
@@ -184,7 +184,7 @@ function targetMuscles(text,category){
 function renderMuscleMap(x,cls){
  if(!window.BODY_PATHS)return '<div class="image-placeholder">근육 도식 불러오는 중</div>';
  const primary=targetMuscles(x.primary,x.category);
- const secondary=targetMuscles(x.secondary,x.category).filter(s=>!primary.includes(s));
+ const secondary=targetMuscles(x.secondary,x.category,false).filter(s=>!primary.includes(s));
  const paint=(parts)=>parts.map(part=>{
   const slug=part.slug;
   const fill=primary.includes(slug)?'#b8f45e':secondary.includes(slug)?'#63a9ff':'#59645e';
