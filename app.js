@@ -187,9 +187,11 @@ function renderMuscleMap(x,cls){
  const secondary=targetMuscles(x.secondary,x.category,false).filter(s=>!primary.includes(s));
  const paint=(parts)=>parts.map(part=>{
   const slug=part.slug;
-  const fill=primary.includes(slug)?'#b8f45e':secondary.includes(slug)?'#63a9ff':'#59645e';
+  const isPrimary=primary.includes(slug),isSecondary=secondary.includes(slug);
+  const fill=isPrimary?'#b8f45e':isSecondary?'#63a9ff':'#59645e';
+  const state=isPrimary?'target-primary':isSecondary?'target-secondary':'target-neutral';
   const paths=[...(part.path?.common||[]),...(part.path?.left||[]),...(part.path?.right||[])];
-  return paths.map(d=>'<path d="'+d+'" fill="'+fill+'" stroke="#18231d" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>').join('');
+  return paths.map(d=>'<path class="'+state+'" d="'+d+'" fill="'+fill+'" stroke="#18231d" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>').join('');
  }).join('');
  const data=window.BODY_PATHS.male;
  const svg='<svg class="'+cls+'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1448 1448" role="img" aria-label="'+escapeHTML(x.name)+' 주 타겟 근육 '+escapeHTML(x.primary)+' 및 보조 근육 '+escapeHTML(x.secondary)+'"><rect width="1448" height="1448" fill="#101712"/>'+paint(data.front)+paint(data.back)+'</svg>';
