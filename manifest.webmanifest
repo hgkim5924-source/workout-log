@@ -1,0 +1,14 @@
+{
+  "name": "WORKOUT LOG - Personal Fitness Tracker",
+  "short_name": "WORKOUT LOG",
+  "description": "광고 없는 개인 운동 기록 앱",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101311",
+  "theme_color": "#101311",
+  "icons": [
+    {"src":"./icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"./icon-512.png","sizes":"512x512","type":"image/png"}
+  ]
+}

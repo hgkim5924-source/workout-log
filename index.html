@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101311">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WORKOUT LOG">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+  <title>WORKOUT LOG</title>
+</head>
+<body>
+  <header class="topbar">
+    <div><div class="eyebrow">PERSONAL FITNESS TRACKER</div><h1>WORKOUT<span> LOG</span></h1></div>
+    <button class="icon-btn" id="backupBtn" aria-label="백업">⇧</button>
+  </header>
+
+  <main>
+    <section id="home" class="screen active">
+      <div class="section-head"><div><p class="eyebrow">TODAY</p><h2>오늘의 운동</h2></div><span id="todayLabel" class="muted"></span></div>
+      <div class="hero-card">
+        <div><p class="eyebrow">WORKOUT SESSION</p><h2 id="todayTitle">운동을 시작해볼까요?</h2><p id="todaySub" class="muted">오늘의 기록을 남겨보세요.</p></div>
+        <button class="primary" id="startWorkout">운동 기록 시작 <span>→</span></button>
+      </div>
+      <div class="stats-grid">
+        <article class="stat-card"><span class="muted">이번 주 운동</span><strong id="weekCount">0<span> 회</span></strong></article>
+        <article class="stat-card"><span class="muted">누적 운동 세트</span><strong id="totalSets">0<span> 세트</span></strong></article>
+      </div>
+      <div class="section-head"><h3>최근 운동</h3><button class="text-btn" data-go="history">전체 보기</button></div>
+      <div id="recentList" class="stack empty">아직 기록이 없습니다.</div>
+    </section>
+
+    <section id="record" class="screen">
+      <div class="section-head"><div><p class="eyebrow">NEW SESSION</p><h2>운동 기록</h2></div></div>
+      <label class="field-label" for="sessionName">운동 이름 / 분할</label>
+      <input id="sessionName" class="input" placeholder="예: 등 · 이두">
+      <div class="section-head compact"><h3>운동 종목</h3><button class="text-btn" id="addExercise">+ 종목 추가</button></div>
+      <div id="exerciseList" class="stack"></div>
+      <button class="primary wide" id="saveWorkout">오늘 운동 저장하기</button>
+      <p class="hint">입력한 기록은 이 아이폰의 브라우저에 저장됩니다.</p>
+    </section>
+
+    <section id="history" class="screen">
+      <div class="section-head"><div><p class="eyebrow">YOUR PROGRESS</p><h2>운동 기록</h2></div></div>
+      <div id="historyList" class="stack empty">저장된 운동이 없습니다.</div>
+    </section>
+
+    <section id="bodydata" class="screen">
+      <div class="section-head"><div><p class="eyebrow">BODY COMPOSITION</p><h2>신체 변화</h2></div></div>
+      <div class="form-card">
+        <label class="field-label">측정 날짜</label><input id="bodyDate" type="date" class="input">
+        <div class="two-col">
+          <div><label class="field-label">체중 (kg)</label><input id="weight" type="number" step="0.1" class="input" placeholder="68.0"></div>
+          <div><label class="field-label">골격근량 (kg)</label><input id="muscle" type="number" step="0.1" class="input" placeholder="33.0"></div>
+        </div>
+        <label class="field-label">체지방량 (kg)</label><input id="fat" type="number" step="0.1" class="input" placeholder="10.0">
+        <button class="primary wide" id="saveBody">측정 기록 저장</button>
+      </div>
+      <div class="section-head"><h3>측정 기록</h3></div><div id="bodyList" class="stack empty">아직 측정 기록이 없습니다.</div>
+    </section>
+
+    <section id="settings" class="screen">
+      <div class="section-head"><div><p class="eyebrow">LOCAL & PRIVATE</p><h2>설정 및 데이터</h2></div></div>
+      <div class="settings-card">
+        <div><strong>기기 내 저장</strong><p class="muted">계정이나 서버로 운동 기록을 전송하지 않습니다.</p></div><span class="status-dot">●</span>
+      </div>
+      <button class="secondary wide" id="exportBtn">데이터 백업 파일 내보내기</button>
+      <label class="secondary wide import-label">백업 파일 가져오기<input id="importFile" type="file" accept="application/json"></label>
+      <p class="hint">브라우저 데이터 삭제 또는 기기 변경 전에 백업 파일을 내보내세요. 이 앱은 클라우드 동기화를 하지 않습니다.</p>
+      <button class="danger wide" id="clearBtn">모든 기록 삭제</button>
+      <p class="version">WORKOUT LOG · PRIVATE BUILD 1.0</p>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-tab="home"><b>⌂</b><span>홈</span></button>
+    <button class="tab" data-tab="record"><b>＋</b><span>기록</span></button>
+    <button class="tab" data-tab="history"><b>▤</b><span>히스토리</span></button>
+    <button class="tab" data-tab="bodydata"><b>◈</b><span>신체</span></button>
+    <button class="tab" data-tab="settings"><b>⚙</b><span>설정</span></button>
+  </nav>
+  <input id="backupInput" type="file" accept="application/json" hidden>
+  <div id="toast" role="status" class="toast"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
