@@ -432,7 +432,7 @@ function imageCandidates(x){
  const atlas=EVERKINETIC_IMAGES[x.name]||[];
  const paths=EXERCISE_IMAGE_PATHS[x.name]||[];
  const freeDb=paths.length?[EXERCISE_IMAGE_BASE+paths[0]]:[];
- return [...new Set([atlas[0],...freeDb].filter(Boolean))];
+ return [...new Set([...freeDb,atlas[0]].filter(Boolean))];
 }
 function handleExerciseImageError(img){
  const fallback=img.dataset.fallback||'';
