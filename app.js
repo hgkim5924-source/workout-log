@@ -319,8 +319,8 @@ const EXERCISE_IMAGE_PATHS={
     "Triceps_Pushdown/1.jpg"
   ],
   "로프 푸시다운": [
-    "Triceps_Pushdown/0.jpg",
-    "Triceps_Pushdown/1.jpg"
+    "Triceps_Pushdown_-_Rope_Attachment/0.jpg",
+    "Triceps_Pushdown_-_Rope_Attachment/1.jpg"
   ],
   "오버헤드 케이블 익스텐션": [
     "Cable_Rope_Overhead_Triceps_Extension/0.jpg",
@@ -437,8 +437,12 @@ const EXERCISE_IMAGE_PATHS={
   "백 익스텐션": [
     "Hyperextensions_Back_Extensions/0.jpg",
     "Hyperextensions_Back_Extensions/1.jpg"
+  ],
+  "푸시업": [
+    "Pushups/0.jpg",
+    "Pushups/1.jpg"
   ]
-};
+};;
 const EXERCISE_IMAGE_BASE='https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
 function imagePair(x){const paths=EXERCISE_IMAGE_PATHS[x.name];return paths?paths.map(p=>EXERCISE_IMAGE_BASE+p):null}
 function exerciseArt(x){const pair=imagePair(x);return pair?'<img class="movement-thumb" loading="lazy" decoding="async" src="'+pair[0]+'" alt="'+escapeHTML(x.name)+' 운동 일러스트" onerror="this.replaceWith(document.createTextNode(\'그림 준비 중\'))">':muscleMap(x)}
