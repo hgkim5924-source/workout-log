@@ -30,3 +30,8 @@ WORKOUT LOG v2 - 운동 라이브러리 업데이트
 운동 동작 참고 이미지
 - Free Exercise DB (Unlicense / Public Domain): https://github.com/yuhonas/free-exercise-db
 - 운동별 시작 자세와 동작 자세 이미지를 참조합니다.
+
+
+운동 동작 이미지 출처
+- Everkinetic exercise illustrations — CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+- 일부 보조 운동 이미지: Free Exercise DB
