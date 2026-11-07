@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="WORKOUT LOG">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=38">
+  <link rel="stylesheet" href="./style.css?v=39">
   <title>WORKOUT LOG</title>
 </head>
 <body>
@@ -81,7 +81,7 @@
       <label class="secondary wide import-label">백업 파일 가져오기<input id="importFile" type="file" accept="application/json"></label>
       <p class="hint">브라우저 데이터 삭제 또는 기기 변경 전에 백업 파일을 내보내세요. 이 앱은 클라우드 동기화를 하지 않습니다.</p>
       <button class="danger wide" id="clearBtn">모든 기록 삭제</button>
-      <p class="hint">운동 동작 이미지 및 타깃 근육 도식: 운동별 오리지널 SVG 일러스트 · 외부 사진/GIF 미사용</p><p class="version">WORKOUT LOG · PRIVATE BUILD 2.8</p><p class="hint">근육 해부 도식: react-native-body-highlighter 기반 경로 데이터 (MIT License). 자세한 출처와 라이선스는 <a href="./THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener">제3자 저작권 안내</a>에서 확인할 수 있습니다.</p>
+      <p class="hint">운동 동작 이미지: MuscleMap 운동별 해부학 일러스트 연동 지원 · 정식 라이선스 데이터 필요</p><p class="hint" id="muscleMapStatus">MuscleMap 정식 라이선스 데이터 확인 중...</p><p class="version">WORKOUT LOG · PRIVATE BUILD 2.9</p><p class="hint">근육 해부 도식: react-native-body-highlighter 기반 경로 데이터 (MIT License). 자세한 출처와 라이선스는 <a href="./THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener">제3자 저작권 안내</a>에서 확인할 수 있습니다.</p>
     </section>
   </main>
 
@@ -94,6 +94,6 @@
   </nav>
   <input id="backupInput" type="file" accept="application/json" hidden>
   <div id="toast" role="status" class="toast"></div>
-  <script src="./app.js?v=39"></script>
+  <script src="./app.js?v=40"></script>
 </body>
 </html>
