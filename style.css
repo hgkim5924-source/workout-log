@@ -38,3 +38,17 @@ main{padding:0 18px}.screen{display:none}.screen.active{display:block}.section-h
 .detail-meta{font-size:11px}
 .detail-desc{font-size:12px;line-height:1.8}
 @media(min-width:600px){.detail-art .exercise-art{max-height:230px;object-fit:contain}}
+
+/* Realistic exercise art sprite: nine distinct poses with highlighted muscle groups */
+.exercise-art{display:block;width:100%;aspect-ratio:1.094;background-image:url('./assets/exercise-sprite.webp');background-repeat:no-repeat;background-size:300% 300%;background-color:#101511;border-radius:11px}
+.mini-anatomy{width:68px;flex:0 0 68px;overflow:hidden;border-radius:10px;background:#101511}
+.mini-anatomy .exercise-art{width:68px;height:62px;aspect-ratio:auto;border-radius:10px}
+.detail-art{padding:0!important;overflow:hidden;border:1px solid #344238;background:#101511;border-radius:14px}
+.detail-art .exercise-art{width:100%;height:auto;aspect-ratio:1.094;border-radius:13px}
+.exercise-detail{padding:12px}
+.exercise-detail h3{font-size:16px;margin:12px 0 10px}
+.target-pill{font-size:11px;padding:7px 10px}
+.detail-meta{font-size:11px;line-height:1.65}
+.detail-desc{font-size:12px;line-height:1.8}
+body{padding-top:calc(env(safe-area-inset-top) + 16px)}
+@media(max-width:390px){.mini-anatomy{width:76px;flex-basis:76px}.mini-anatomy .exercise-art{width:76px;height:69px}}
