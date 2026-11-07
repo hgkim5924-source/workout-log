@@ -477,3 +477,14 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .musclemap-visual p{margin:0;padding:2px 0 4px;color:#aab8ac;font-size:10px;text-align:center}
 .musclemap-unavailable{display:grid;place-items:center;width:100%;min-height:80px;padding:12px;background:#191e1b;border:1px dashed #526154;border-radius:10px;color:#aab8ac;font-size:10px;text-align:center}
 @media(max-width:600px){.mini-anatomy .musclemap-image{height:58px;min-height:58px;max-height:58px}.musclemap-visual img{max-height:260px}}
+
+
+/* v40: exercise image/photo area removed; text-only exercise picker */
+.library-item{display:flex;align-items:center;min-height:58px;padding:10px 12px;gap:0}
+.library-item .mini-anatomy,.library-item img,.library-item svg{display:none!important}
+.library-item-text{display:block;min-width:0;width:100%}
+.library-item-text b{display:block;font-size:12px;line-height:1.45}
+.library-item-text small{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+.exercise-detail{display:block;min-width:0;padding:14px}
+.exercise-detail .detail-art,.exercise-detail .muscle-legend{display:none!important}
+.exercise-detail h3{margin:2px 0 10px;font-size:16px}
