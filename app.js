@@ -135,7 +135,7 @@ function muscleMap(x){
  const head='<ellipse class="base" cx="50" cy="7" rx="9" ry="10"/>';
  const front='<g transform="translate(2 4)">'+head+base+
  path('deltFront','M25 26 Q31 18 42 23 L43 39 Q35 42 28 37Z')+
- path('deltFront','M57 23 Q68 18 75 26 L72 37 Q65 42 57 39Z')+
+ path('deltFront','M57 23 Q68 18 75 26 L72 37 Q65 42 57 39Z')+path('deltSide','M22 27 Q17 33 21 43 L29 40 L30 29Z')+path('deltSide','M78 27 Q83 33 79 43 L71 40 L70 29Z')+
  path('pec','M31 39 Q39 32 48 39 L48 57 Q39 61 31 54Z')+
  path('pec','M52 39 Q61 32 69 39 L69 54 Q61 61 52 57Z')+
  path('biceps','M20 47 Q26 42 30 48 L27 69 L21 67Z')+
@@ -154,7 +154,7 @@ function muscleMap(x){
  path('calf','M61 171 L70 172 L72 211 L64 211Z')+'</g>';
  const back='<g transform="translate(112 4)">'+head+base+
  path('deltRear','M25 26 Q32 18 42 23 L43 39 Q34 42 28 37Z')+
- path('deltRear','M57 23 Q68 18 75 26 L72 37 Q65 42 57 39Z')+
+ path('deltRear','M57 23 Q68 18 75 26 L72 37 Q65 42 57 39Z')+path('deltSide','M22 27 Q17 33 21 43 L29 40 L30 29Z')+path('deltSide','M78 27 Q83 33 79 43 L71 40 L70 29Z')+
  path('traps','M42 22 Q50 19 58 22 L65 43 L50 53 L35 43Z')+
  path('traps','M36 42 L50 51 L64 42 L61 59 L50 65 L39 59Z')+
  path('rhomboid','M38 48 L49 54 L49 80 L38 74Z')+
