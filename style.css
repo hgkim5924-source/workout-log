@@ -72,3 +72,11 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .mini-anatomy .exercise-placeholder b{font-size:8px}
 .mini-anatomy .exercise-placeholder small{display:none}
 .exercise-credit{font-size:9px;color:#78847b;text-align:center;margin:8px 0 0}
+
+.exercise-gallery{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;padding:7px;background:#101511}
+.exercise-gallery figure{margin:0;min-width:0;overflow:hidden;border-radius:9px;background:#1b241e;border:1px solid #344238}
+.exercise-gallery img{display:block;width:100%;aspect-ratio:1.15;object-fit:cover}
+.exercise-gallery figcaption{padding:6px 4px;text-align:center;font-size:10px;font-weight:700;color:#c9d4ca}
+.detail-art:has(.exercise-gallery){padding:0!important}
+.mini-anatomy .exercise-photo{aspect-ratio:auto}
+@media(max-width:390px){.exercise-gallery{gap:5px;padding:5px}.exercise-gallery figcaption{font-size:9px}}
