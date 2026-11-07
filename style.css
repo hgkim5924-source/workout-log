@@ -52,3 +52,9 @@ main{padding:0 18px}.screen{display:none}.screen.active{display:block}.section-h
 .detail-desc{font-size:12px;line-height:1.8}
 body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 @media(max-width:390px){.mini-anatomy{width:76px;flex-basis:76px}.mini-anatomy .exercise-art{width:76px;height:69px}}
+
+.muscle-legend{display:flex;flex-wrap:wrap;gap:10px;padding:9px 2px 3px;color:#b9c4bb;font-size:10px}
+.muscle-legend span{display:inline-flex;align-items:center;gap:5px}
+.muscle-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.primary-dot{background:#b6f36b;box-shadow:0 0 8px #b6f36b66}
+.secondary-dot{background:#6da9ff}
