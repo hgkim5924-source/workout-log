@@ -238,66 +238,50 @@ const EXERCISE_GIF_QUERIES={
 window.EXERCISE_GIF_CACHE=window.EXERCISE_GIF_CACHE||{};
 window.EXERCISE_GIF_REQUEST=0;
 function exerciseGifQuery(x){return EXERCISE_GIF_QUERIES[x.name]||''}
-const EXERCISE_GIF_STATIC={'바벨 슈러그':'https://d205bpvrqc9yn1.cloudfront.net/0095.gif','덤벨 슈러그':'https://d205bpvrqc9yn1.cloudfront.net/0331.gif'};
+function normalizeExerciseName(value){return String(value||'').toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
 async function loadExerciseAnimation(x){
  const frame=document.querySelector('[data-movement-frame]');
  if(!frame)return;
  const request=++window.EXERCISE_GIF_REQUEST;
- const direct=EXERCISE_GIF_STATIC[x.name];
- if(direct){
-  const img=document.createElement('img');img.className='movement-gif';img.alt=x.name+' 운동 동작 애니메이션';img.loading='eager';img.decoding='async';img.onload=()=>{if(request===window.EXERCISE_GIF_REQUEST){frame.innerHTML='';frame.appendChild(img)}};img.onerror=()=>{if(request===window.EXERCISE_GIF_REQUEST)frame.innerHTML='<div class="movement-empty">동작 GIF를 표시하지 못했습니다.<small>원본 이미지 주소에 접근할 수 없습니다.</small></div>'};img.src=direct;return;
- }
  const query=exerciseGifQuery(x);
- if(!query){frame.innerHTML='<div class="movement-empty">이 종목의 동작 자료를 아직 찾지 못했습니다.<small>근육 도식은 오른쪽에 표시됩니다.</small></div>';return}
+ if(!query){frame.innerHTML='<div class="movement-empty">이 종목에 연결된 동작 자료가 없습니다.<small>확인되지 않은 다른 운동 GIF는 대신 표시하지 않습니다.</small></div>';return}
  const cached=window.EXERCISE_GIF_CACHE[x.name];
  const show=url=>{
   if(request!==window.EXERCISE_GIF_REQUEST)return;
   const img=document.createElement('img');
   img.className='movement-gif';img.alt=x.name+' 운동 동작 애니메이션';img.loading='eager';img.decoding='async';
-  img.onload=()=>{if(request!==window.EXERCISE_GIF_REQUEST)return;frame.innerHTML='';frame.appendChild(img);};
-  img.onerror=()=>{if(request!==window.EXERCISE_GIF_REQUEST)return;frame.innerHTML='<div class="movement-empty">원본 GIF를 표시하지 못했습니다.<small>다른 자료 주소를 다시 확인해 주세요.</small></div>';};
+  img.onload=()=>{if(request!==window.EXERCISE_GIF_REQUEST)return;frame.innerHTML='';frame.appendChild(img)};
+  img.onerror=()=>{if(request!==window.EXERCISE_GIF_REQUEST)return;frame.innerHTML='<div class="movement-empty">GIF 파일을 불러오지 못했습니다.<small>자료 주소 또는 외부 서버 상태를 확인해야 합니다.</small></div>'};
   img.src=url;
  };
  if(cached){show(cached);return}
- frame.innerHTML='<div class="movement-loading">운동 동작 검색 중…</div>';
+ frame.innerHTML='<div class="movement-loading">정확한 운동 동작 검색 중…</div>';
  try{
-  const params=['search','q','name'];
-  const endpoints=params.map(key=>'https://oss.exercisedb.dev/api/v1/exercises/search?'+key+'='+encodeURIComponent(query))
-   .concat(['https://oss.exercisedb.dev/api/v1/exercises?search='+encodeURIComponent(query)]);
-  let match=null,lastError=null;
-  const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-  const target=norm(query);
-  for(const url of endpoints){
-   try{
-    const response=await fetch(url,{headers:{'Accept':'application/json'}});
-    if(!response.ok){lastError=new Error('ExerciseDB '+response.status);continue}
-    const payload=await response.json();
-    const candidates=[];
-    const collect=value=>{
-     if(Array.isArray(value)){value.forEach(v=>{if(v&&typeof v==='object')candidates.push(v)});return}
-     if(value&&typeof value==='object'){
-      for(const key of ['data','exercises','results','items'])if(value[key]!==undefined)collect(value[key]);
-     }
-    };
-    collect(payload);
-    const ranked=candidates.map(item=>{
-     const name=norm(item.name||item.exerciseName||item.title);
-     const words=target.split(' ').filter(w=>w.length>2);
-     const overlap=words.filter(w=>name.includes(w)).length;
-     const score=name===target?100:name.includes(target)?90:target.includes(name)?80:overlap*10;
-     return {item,score};
-    }).sort((a,b)=>b.score-a.score);
-    const found=ranked.find(v=>v.score>=Math.max(10,Math.ceil(target.split(' ').filter(w=>w.length>2).length*5)));
-    if(found){match=found.item;break}
-   }catch(e){lastError=e}
-  }
-  const gif=match&&(match.gifUrl||match.gif_url||match.gif||match.animationUrl||match.animation_url||match.media?.gifUrl);
-  if(!gif)throw lastError||new Error('검색 결과에서 일치하는 GIF를 찾지 못함');
+  const response=await fetch('https://oss.exercisedb.dev/api/v1/exercises/search?q='+encodeURIComponent(query),{headers:{'Accept':'application/json'}});
+  if(!response.ok)throw new Error('ExerciseDB '+response.status);
+  const payload=await response.json();
+  const candidates=[];
+  const collect=value=>{
+   if(Array.isArray(value)){value.forEach(v=>{if(v&&typeof v==='object')candidates.push(v)});return}
+   if(value&&typeof value==='object'){
+    if(value.exerciseId||value.name)candidates.push(value);
+    for(const key of ['data','exercises','results','items'])if(value[key]!==undefined)collect(value[key]);
+   }
+  };
+  collect(payload);
+  const target=normalizeExerciseName(query);
+  const exact=candidates.filter(item=>normalizeExerciseName(item.name||item.exerciseName||item.title)===target);
+  if(exact.length!==1)throw new Error(exact.length?'운동명이 같은 검색 결과가 여러 개입니다.':'운동명과 정확히 일치하는 결과가 없습니다.');
+  const item=exact[0];
+  const gif=item.gifUrl||item.gif_url||item.gif||item.animationUrl||item.animation_url;
+  if(!gif)throw new Error('정확히 일치하는 운동 자료에 GIF 주소가 없습니다.');
+  const parsed=new URL(gif);
+  if(parsed.protocol!=='https:'||!['static.exercisedb.dev'].includes(parsed.hostname))throw new Error('검증되지 않은 GIF 주소입니다.');
   window.EXERCISE_GIF_CACHE[x.name]=gif;
   show(gif);
  }catch(error){
   console.warn('운동 동작 GIF 로딩 실패:',x.name,error);
-  if(request===window.EXERCISE_GIF_REQUEST)frame.innerHTML='<div class="movement-empty">동작 GIF를 불러오지 못했습니다.<small>검색 방식과 응답 형식을 보완했습니다. 다시 선택해 주세요.</small></div>';
+  if(request===window.EXERCISE_GIF_REQUEST)frame.innerHTML='<div class="movement-empty">정확히 일치하는 운동 GIF를 확인하지 못했습니다.<small>다른 운동의 GIF를 잘못 보여주지 않도록 표시를 중단했습니다.</small></div>';
  }
 }
 
