@@ -124,19 +124,19 @@ function muscleMap(x){
   {keys:['전면 삼각근','측면 삼각근','후면 삼각근','삼각근','어깨'],slug:'deltoids'},
   {keys:['이두근','상완이두근','이두'],slug:'biceps'},
   {keys:['삼두근','삼두'],slug:'triceps'},
-  {keys:['전완근','상완요골근'],slug:'forearms'},
-  {keys:['승모근','상부 승모근'],slug:'traps'},
-  {keys:['광배근','대원근','등'],slug:'lats'},
-  {keys:['능형근','중부 등'],slug:'rhomboids'},
-  {keys:['척추기립근','허리'],slug:'lower_back'},
+  {keys:['전완근','상완요골근'],slug:'forearm'},
+  {keys:['승모근','상부 승모근'],slug:'trapezius'},
+  {keys:['광배근','대원근','등'],slug:'upper-back'},
+  {keys:['능형근','중부 등'],slug:'upper-back'},
+  {keys:['척추기립근','허리'],slug:'lower-back'},
   {keys:['복직근','복횡근','코어'],slug:'abs'},
   {keys:['복사근'],slug:'obliques'},
   {keys:['둔근','대둔근','중둔근','소둔근'],slug:'gluteal'},
   {keys:['대퇴사두근','허벅지 앞'],slug:'quadriceps'},
-  {keys:['햄스트링','허벅지 뒤'],slug:'hamstrings'},
+  {keys:['햄스트링','허벅지 뒤'],slug:'hamstring'},
   {keys:['비복근','가자미근','종아리'],slug:'calves'},
   {keys:['내전근'],slug:'adductors'},
-  {keys:['고관절 굴곡근','장요근'],slug:'hip_flexors'}
+  {keys:['고관절 굴곡근','장요근'],slug:'abs'}
  ];
  const has=(arr)=>arr.some(k=>read.includes(k));
  let primary=groups.filter(g=>has(g.keys)&&g.keys.some(k=>(x.primary||'').includes(k))).map(g=>g.slug);
