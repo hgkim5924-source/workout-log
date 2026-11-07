@@ -139,8 +139,8 @@ function muscleMap(x){
   {keys:['고관절 굴곡근','장요근'],slug:'abs'}
  ];
  const has=(arr)=>arr.some(k=>read.includes(k));
- let primary=groups.filter(g=>has(g.keys)&&g.keys.some(k=>(x.primary||'').includes(k))).map(g=>g.slug);
- let secondary=groups.filter(g=>has(g.keys)&&g.keys.some(k=>(x.secondary||'').includes(k))).map(g=>g.slug);
+ let primary=[...new Set(groups.filter(g=>has(g.keys)&&g.keys.some(k=>(x.primary||'').includes(k))).map(g=>g.slug))];
+ let secondary=[...new Set(groups.filter(g=>has(g.keys)&&g.keys.some(k=>(x.secondary||'').includes(k))).map(g=>g.slug))];
  if(!primary.length&&/심폐지구력/.test(read)) primary=['quadriceps','gluteal','calves'];
  if(!secondary.length&&/심폐지구력/.test(read)) secondary=['abs'];
  secondary=secondary.filter(v=>!primary.includes(v));
