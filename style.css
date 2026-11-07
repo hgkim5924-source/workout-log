@@ -220,3 +220,45 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
  .exercise-visuals .movement-gallery img{height:112px}
  .detail-anatomy .muscle-map{max-height:230px}
 }
+
+
+/* v17: one real exercise photo beside the per-exercise target-muscle map */
+.exercise-visuals .movement-gallery.single{
+  display:block;
+  width:100%;
+  min-width:0;
+  padding:0;
+  grid-template-columns:minmax(0,1fr)!important;
+}
+.exercise-visuals .movement-gallery.single figure{
+  width:100%;
+  margin:0;
+  overflow:hidden;
+  border:0;
+  border-radius:10px;
+  background:#101712;
+}
+.exercise-visuals .movement-gallery.single img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:4 / 3;
+  max-height:290px;
+  object-fit:cover;
+  background:#101712;
+}
+.exercise-visuals .movement-gallery.single figcaption{display:none}
+.exercise-visuals .detail-anatomy{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+}
+@media(max-width:600px){
+  .exercise-visuals .movement-gallery.single img{
+    height:auto;
+    aspect-ratio:1.08 / 1;
+    max-height:230px;
+    object-fit:cover;
+  }
+}
