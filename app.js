@@ -105,6 +105,7 @@ const EXERCISE_PHOTOS={
  '인클라인 덤벨프레스':'Incline_Dumbbell_Press',
  '덤벨 플라이':'Dumbbell_Flyes',
  '케이블 플라이':'Cable_Crossover',
+ '펙덱 플라이':'Butterfly',
  '체스트 프레스 머신':'Leverage_Chest_Press',
  '푸시업':'Pushups',
  '데드리프트':'Barbell_Deadlift',
