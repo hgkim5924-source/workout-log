@@ -29,3 +29,16 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+Exercise movement dataset and pose images
+- Project: gym-exercise-guide
+- Repository: https://github.com/gengyueworks/gym-exercise-guide
+- Upstream source: yuhonas/free-exercise-db
+- License stated by the dataset project: The Unlicense (public domain dedication)
+- Included material used by WORKOUT LOG: structured exercise metadata and two demonstration pose images per exercise.
+- Dataset revision pinned by WORKOUT LOG: ed41bb3a262fee9dd8d7d0aa3437696dcef601ed
+
+Exercise-specific target-muscle SVG diagrams
+- Project: gym-exercise-guide, assets/muscle/
+- The diagrams are provided with the referenced exercise dataset. Their individual provenance is not separately stated in the repository's data source notice; retain this notice and the upstream repository reference when redistributing.
