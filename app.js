@@ -238,10 +238,15 @@ const EXERCISE_GIF_QUERIES={
 window.EXERCISE_GIF_CACHE=window.EXERCISE_GIF_CACHE||{};
 window.EXERCISE_GIF_REQUEST=0;
 function exerciseGifQuery(x){return EXERCISE_GIF_QUERIES[x.name]||''}
+const EXERCISE_GIF_STATIC={'바벨 슈러그':'https://d205bpvrqc9yn1.cloudfront.net/0095.gif','덤벨 슈러그':'https://d205bpvrqc9yn1.cloudfront.net/0331.gif'};
 async function loadExerciseAnimation(x){
  const frame=document.querySelector('[data-movement-frame]');
  if(!frame)return;
  const request=++window.EXERCISE_GIF_REQUEST;
+ const direct=EXERCISE_GIF_STATIC[x.name];
+ if(direct){
+  const img=document.createElement('img');img.className='movement-gif';img.alt=x.name+' 운동 동작 애니메이션';img.loading='eager';img.decoding='async';img.onload=()=>{if(request===window.EXERCISE_GIF_REQUEST){frame.innerHTML='';frame.appendChild(img)}};img.onerror=()=>{if(request===window.EXERCISE_GIF_REQUEST)frame.innerHTML='<div class="movement-empty">동작 GIF를 표시하지 못했습니다.<small>원본 이미지 주소에 접근할 수 없습니다.</small></div>'};img.src=direct;return;
+ }
  const query=exerciseGifQuery(x);
  if(!query){frame.innerHTML='<div class="movement-empty">이 종목의 동작 자료를 아직 찾지 못했습니다.<small>근육 도식은 오른쪽에 표시됩니다.</small></div>';return}
  const cached=window.EXERCISE_GIF_CACHE[x.name];
@@ -302,7 +307,7 @@ function renderCategories(){ $('#categoryChips').innerHTML=CATS.map(c=>`<button 
 function renderLibrary(){const q=$('#exerciseSearch').value.trim().toLowerCase();const arr=allExercises().filter(x=>(selectedCategory==='전체'||x.category===selectedCategory||!!q)&&(!q||x.name.toLowerCase().includes(q)||x.primary.toLowerCase().includes(q)||x.category.includes(q)));$('#libraryList').innerHTML=arr.length?arr.map(x=>`<button class="library-item ${selectedExercise?.id===x.id?'chosen':''}" data-ex="${x.id}"><span class="mini-anatomy">${exerciseArt(x)}</span><span><b>${escapeHTML(x.name)}</b><small>${escapeHTML(x.primary)}</small></span></button>`).join(''):'<p class="empty">검색 결과가 없습니다.</p>';document.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{selectedExercise=allExercises().find(x=>x.id===b.dataset.ex);renderLibrary();renderDetail()})}
 function renderDetail(){const x=selectedExercise;if(!x){$('#exerciseDetail').innerHTML='<div class="detail-empty">운동을 선택하면 타겟 부위와 설명이 표시됩니다.</div>';return}$('#exerciseDetail').innerHTML=`<div class="detail-art">${exerciseGallery(x)}</div><div class="muscle-legend"><span><i class="muscle-dot primary-dot"></i> 주 타겟 근육</span><span><i class="muscle-dot secondary-dot"></i> 보조 근육</span></div><h3>${escapeHTML(x.name)}</h3><span class="target-pill">주 타겟 · ${escapeHTML(x.primary)}</span><p class="detail-meta">보조 근육 · ${escapeHTML(x.secondary)}</p><p class="detail-meta">운동 도구 · ${escapeHTML(x.equipment)}</p><p class="detail-desc">${escapeHTML(x.desc)}</p><button class="primary wide" id="selectThisExercise">＋ 오늘 운동에 추가</button>`;loadExerciseAnimation(x);$('#selectThisExercise').onclick=()=>{exerciseCard(x.name);toast(`${x.name} 추가 완료`)}}
 $('#exerciseSearch').oninput=()=>renderLibrary();
-$('#customExerciseBtn').onclick=async()=>{const name=prompt('추가할 운동 이름을 입력하세요.');if(!name||!name.trim())return;const category=prompt('운동 분류를 입력하세요: 가슴, 등, 어깨, 이두, 삼두, 하체, 복근, 유산소, 기타','기타');if(!CATS.includes(category)){toast('분류를 정확히 입력해주세요.');return}const primary=prompt('주 타겟 부위 (예: 광배근)','직접 입력 운동 부위')||'직접 입력';const custom=await get('customExercises');custom.push({id:'custom'+crypto.randomUUID(),category,name:name.trim(),primary,secondary:'직접 지정',equipment:'직접 입력',desc:'사용자가 직접 등록한 운동입니다.',builtin:false});await put('customExercises',custom);await refreshCustom();selectedCategory=category;selectedExercise=allExercises().find(x=>x.name===name.trim()&&!x.builtin);renderCategories();renderLibrary();renderDetail();toast('나만의 운동을 추가했습니다.')};
+$('#customExerciseBtn').onclick=async()=>{const name=prompt('추가할 운동 이름을 입력하세요.');if(!name||!name.trim())return;const category=prompt('운동 분류를 입력하세요: 가슴, 등, 어깨, 이두, 삼두, 하체, 복근, 유산소, 기타','기타');if(!CATS.includes(category)||category==='전체'){toast('운동 분류를 정확히 입력해주세요.');return}const primary=prompt('주 타겟 부위 (예: 광배근)','직접 입력 운동 부위')||'직접 입력';const custom=await get('customExercises');custom.push({id:'custom'+crypto.randomUUID(),category,name:name.trim(),primary,secondary:'직접 지정',equipment:'직접 입력',desc:'사용자가 직접 등록한 운동입니다.',builtin:false});await put('customExercises',custom);await refreshCustom();selectedCategory=category;selectedExercise=allExercises().find(x=>x.name===name.trim()&&!x.builtin);renderCategories();renderLibrary();renderDetail();toast('나만의 운동을 추가했습니다.')};
 
 
 // Load the most recently saved workout into the current form. It does not save a new log until Save is pressed.
