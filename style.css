@@ -488,3 +488,10 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .exercise-detail{display:block;min-width:0;padding:14px}
 .exercise-detail .detail-art,.exercise-detail .muscle-legend{display:none!important}
 .exercise-detail h3{margin:2px 0 10px;font-size:16px}
+
+
+/* v41: exercise picker shows names only, without thumbnails or muscle labels */
+.library-item{display:flex;align-items:center;min-height:52px;padding:10px 12px;gap:0}
+.library-item .mini-anatomy,.library-item img,.library-item svg,.library-item small{display:none!important}
+.library-item-text{display:block;min-width:0;width:100%}
+.library-item-text b{display:block;font-size:13px;line-height:1.45;font-weight:600}
