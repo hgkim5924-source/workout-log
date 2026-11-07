@@ -72,7 +72,6 @@ const LIB=[
 ['등','체스트 서포티드 로우','능형근·중부 승모근','광배근, 이두근','머신/덤벨','가슴을 패드에 고정하고 팔꿈치를 뒤로 당깁니다.'],
 ['등','티바 로우','중부 등·광배근','후면 삼각근, 이두근','머신/바벨','상체를 고정하고 손잡이를 몸통 쪽으로 당깁니다.'],
 ['등','스트레이트 암 풀다운','광배근','대원근, 삼두근 장두','케이블','팔꿈치를 거의 편 상태로 손잡이를 허벅지까지 내립니다.'],
-['등','바벨 슈러그','상부 승모근','견갑거근, 중부 승모근','바벨','양손으로 바벨을 잡고 팔꿈치를 편 상태에서 어깨를 귀 방향으로 들어 올린 뒤 천천히 내립니다.'],
 ['등','덤벨 슈러그','상부 승모근','견갑거근, 중부 승모근','덤벨','양손에 덤벨을 들고 팔을 편 채 어깨를 위로 으쓱 들어 올린 뒤 천천히 내립니다.'],
 ['어깨','오버헤드 프레스','전면·측면 삼각근','삼두근, 상부 승모근','바벨','바를 턱 아래에서 머리 위로 수직으로 밀어 올립니다.'],
 ['어깨','덤벨 숄더 프레스','전면·측면 삼각근','삼두근','덤벨','덤벨을 어깨 옆에서 머리 위로 밀어 올립니다.'],
@@ -131,10 +130,12 @@ const LEGACY_SOURCE_IDS={
 '덤벨 플라이':'Dumbbell_Flyes',
 '케이블 플라이':'Cable_Crossover',
 '체스트 프레스 머신':'Leverage_Chest_Press',
+'푸시업':'Pushups',
 '펙덱 플라이':'Butterfly',
 '데드리프트':'Barbell_Deadlift',
 '루마니안 데드리프트':'Romanian_Deadlift',
 '랫풀다운':'Full_Range-Of-Motion_Lat_Pulldown',
+'풀업':'Pullups',
 '와이드 랫풀다운':'Wide-Grip_Lat_Pulldown',
 '언더그립 랫풀다운':'Underhand_Cable_Pulldowns',
 '친업':'Chin-Up',
@@ -173,6 +174,7 @@ const LEGACY_SOURCE_IDS={
 '레그 프레스':'Leg_Press',
 '레그 익스텐션':'Leg_Extensions',
 '레그 컬':'Lying_Leg_Curls',
+'런지':'Bodyweight_Walking_Lunge',
 '힙 쓰러스트':'Barbell_Hip_Thrust',
 '카프 레이즈':'Standing_Calf_Raises',
 '힙 어덕션':'Cable_Hip_Adduction',
@@ -193,9 +195,6 @@ const LEGACY_SOURCE_IDS={
 };
 const EXERCISE_SOURCE_COMMIT='ed41bb3a262fee9dd8d7d0aa3437696dcef601ed';
 const EXERCISE_ASSET_BASE='https://raw.githubusercontent.com/gengyueworks/gym-exercise-guide/'+EXERCISE_SOURCE_COMMIT+'/assets';
-const EXERCISE_DATA_URL='https://raw.githubusercontent.com/gengyueworks/gym-exercise-guide/'+EXERCISE_SOURCE_COMMIT+'/data/exercises.zh.json';
-let exerciseCatalogCache=[];
-let exerciseCatalogById=new Map();
 const MUSCLE_NAMES_KO={
 abdominals:'복근',abs:'복근',pectorals:'대흉근',chest:'가슴',lats:'광배근',latissimus_dorsi:'광배근',
 deltoids:'삼각근',shoulders:'삼각근',biceps:'이두근',triceps:'삼두근',forearms:'전완근',brachialis:'상완근',
@@ -244,10 +243,8 @@ function translateExerciseName(en){
  for(const [re,value] of rules)out=out.replace(re,value);
  return out.replace(/[_-]+/g,' ').replace(/\s+/g,' ').replace(/\s+,/g,',').trim();
 }
-function sourceFor(x){return x.sourceData||(x.sourceId?exerciseCatalogById.get(x.sourceId):null)||null}
 function sourceMuscleUrl(x){
- const e=sourceFor(x);
- return e?EXERCISE_ASSET_BASE+'/muscle/'+e.id+'.svg':'';
+ return x.sourceId?EXERCISE_ASSET_BASE+'/muscle/'+x.sourceId+'.svg':'';
 }
 function exerciseArt(x){
  const src=sourceMuscleUrl(x);
@@ -263,13 +260,7 @@ function allExercises(){
   const sourceId=LEGACY_SOURCE_IDS[x[1]]||null;
   return {id:'lib'+i,category:x[0],name:x[1],primary:x[2],secondary:x[3],equipment:x[4],desc:x[5],builtin:true,sourceId,sourceData:sourceId?exerciseCatalogById.get(sourceId)||null:null};
  });
- const used=new Set(Object.values(LEGACY_SOURCE_IDS));
- const imported=exerciseCatalogCache.filter(e=>!used.has(e.id)).map(e=>({
-  id:'src_'+e.id,sourceId:e.id,sourceData:e,category:sourceCategory(e),name:translateExerciseName(e.name_en),
-  nameEn:e.name_en,primary:muscleNamesKo(e.primaryMuscles),secondary:muscleNamesKo(e.secondaryMuscles),
-  equipment:sourceEquipmentKo(e),desc:'운동 자세와 타깃 근육 자료가 연결된 운동입니다.',builtin:true
- }));
- return [...legacy,...imported,...(window.customExerciseCache||[])];
+ return [...legacy,...(window.customExerciseCache||[])];
 }
 
 let selectedCategory='가슴', selectedExercise=null;
@@ -302,5 +293,5 @@ async function exportData(){const data={version:1,exportedAt:new Date().toISOStr
 async function importData(file){try{const data=JSON.parse(await file.text());if(!Array.isArray(data.logs)||!Array.isArray(data.body))throw Error();if(!confirm('가져온 데이터로 현재 기록을 교체할까요?'))return;await put('logs',data.logs);await put('body',data.body);if(Array.isArray(data.customExercises))await put('customExercises',data.customExercises);if(data.settings?.weightUnit){weightUnit=data.settings.weightUnit==='lbs'?'lbs':'kg';await put('settings',{weightUnit});$('#weightUnit').value=weightUnit;}await refreshCustom();renderCategories();renderLibrary();toast('백업 데이터를 복원했습니다.');renderHome()}catch{toast('올바른 백업 파일이 아닙니다.')}}
 $('#weightUnit').onchange=async e=>{applyWeightUnit(e.target.value);await put('settings',{weightUnit});toast(`중량 단위를 ${weightUnit}로 변경했습니다.`)};
 $('#backupBtn').onclick=exportData;$('#exportBtn').onclick=exportData;$('#importFile').onchange=e=>e.target.files[0]&&importData(e.target.files[0]);$('#clearBtn').onclick=async()=>{if(confirm('모든 운동 및 신체 기록을 영구 삭제할까요?')){await put('logs',[]);await put('body',[]);toast('모든 기록을 삭제했습니다.');renderHome()}};
-async function loadExerciseCatalog(){const cached=await get('exerciseCatalog');if(Array.isArray(cached)&&cached.length){exerciseCatalogCache=cached;exerciseCatalogById=new Map(cached.map(e=>[e.id,e]));return true}try{const response=await fetch(EXERCISE_DATA_URL);if(!response.ok)throw new Error('운동 자료 서버 응답 오류 '+response.status);const data=await response.json();if(!Array.isArray(data)||data.length<800)throw new Error('운동 자료 형식 또는 개수 확인 실패');await put('exerciseCatalog',data);exerciseCatalogCache=data;exerciseCatalogById=new Map(data.map(e=>[e.id,e]));return true}catch(error){console.error('운동 자료 불러오기 실패',error);exerciseCatalogCache=[];exerciseCatalogById=new Map();return false}}
-(async()=>{db=await openDB();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#weightUnit').value=weightUnit;const catalogLoaded=await loadExerciseCatalog();await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if(!catalogLoaded)toast('추가 운동 자료를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
+
+(async()=>{db=await openDB();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#weightUnit').value=weightUnit;await put('exerciseCatalog',[]);await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
