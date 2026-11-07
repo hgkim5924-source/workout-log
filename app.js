@@ -6,6 +6,7 @@ window.BODY_PATHS=null;
 const MUSCLEMAP_ROOT='./assets/musclemap/';
 const MUSCLEMAP_IDS=Object.freeze({
  '바벨 벤치프레스':'barpath_barbell_bench_press',
+ '바벨 백 스쿼트':'barpath_barbell_back_squat',
  '케이블 하이 투 로우 플라이':'barpath_cable_fly_high_to_low',
  '어시스트 풀업':'barpath_assisted_pull_up_machine',
  '바벨 슈러그':'barpath_barbell_shrug',
