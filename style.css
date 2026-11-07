@@ -436,3 +436,10 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
  .source-pose img{height:145px}
  .source-muscle-svg{max-height:235px}
 }
+
+.source-cues{margin:12px 0;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:11px;font-size:11px;line-height:1.65}
+.source-cues b{display:block;color:var(--accent);margin-bottom:6px}
+.source-cues ol,.source-mistakes ul{margin:0;padding-left:18px}
+.source-cues li,.source-mistakes li{margin:4px 0}
+.source-mistakes{margin:8px 0;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-size:11px;line-height:1.6}
+.source-mistakes summary{cursor:pointer;color:var(--muted);font-weight:700}
