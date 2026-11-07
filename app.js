@@ -164,6 +164,7 @@ const LEGACY_SOURCE_IDS={
 '케이블 푸시다운':'Triceps_Pushdown',
 '로프 푸시다운':'Triceps_Pushdown_-_Rope_Attachment',
 '오버헤드 케이블 익스텐션':'Cable_Rope_Overhead_Triceps_Extension',
+'라잉 트라이셉스 익스텐션':'Lying_Triceps_Press',
 '클로즈그립 벤치프레스':'Close-Grip_Barbell_Bench_Press',
 '딥스':'Dips_-_Triceps_Version',
 '바벨 백 스쿼트':'Barbell_Squat',
@@ -276,6 +277,8 @@ function allExercises(){
  return [...legacy,...imported,...(window.customExerciseCache||[])];
 }
 
+let selectedCategory='가슴', selectedExercise=null;
+let exerciseVisibleCount=48;
 async function refreshCustom(){window.customExerciseCache=await get('customExercises');}
 function renderCategories(){ $('#categoryChips').innerHTML=CATS.map(c=>`<button class="category-chip ${c===selectedCategory?'active':''}" data-cat="${c}">${c}</button>`).join('');document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;renderCategories();renderLibrary()});}
 function renderLibrary(){const q=$('#exerciseSearch').value.trim().toLowerCase();const arr=allExercises().filter(x=>(selectedCategory==='전체'||x.category===selectedCategory||!!q)&&(!q||[x.name,x.nameEn,x.primary,x.secondary,x.equipment,x.category].join(' ').toLowerCase().includes(q)));$('#libraryList').innerHTML=arr.length?arr.map(x=>`<button class="library-item ${selectedExercise?.id===x.id?'chosen':''}" data-ex="${x.id}"><span class="mini-anatomy">${exerciseArt(x)}</span><span><b>${escapeHTML(x.name)}</b><small>${escapeHTML(x.primary)}</small></span></button>`).join(''):'<p class="empty">검색 결과가 없습니다.</p>';document.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{selectedExercise=allExercises().find(x=>x.id===b.dataset.ex);renderLibrary();renderDetail()})}
