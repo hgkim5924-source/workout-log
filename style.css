@@ -80,3 +80,53 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .detail-art:has(.exercise-gallery){padding:0!important}
 .mini-anatomy .exercise-photo{aspect-ratio:auto}
 @media(max-width:390px){.exercise-gallery{gap:5px;padding:5px}.exercise-gallery figcaption{font-size:9px}}
+
+/* Mobile-first exercise picker redesign */
+.picker-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.exercise-credit{display:none}
+.muscle-map{display:block;width:100%;height:auto;max-height:220px}
+.muscle-map .base{fill:#35413a;stroke:#829087;stroke-width:1.5;stroke-linejoin:round}
+.muscle-map .muscle{fill:#64736a;stroke:#18231d;stroke-width:1.2;stroke-linejoin:round}
+.muscle-map .muscle.primary{fill:#b6f36b;filter:drop-shadow(0 0 3px #a8f05c88)}
+.muscle-map .muscle.secondary{fill:#6da9ff}
+.muscle-map text{font-size:9px;fill:#9ba99f;text-anchor:middle;font-weight:700}
+.exercise-art{background:none!important}
+.mini-anatomy{width:58px;flex:0 0 58px;background:#101511;border-radius:9px;padding:2px}
+.mini-anatomy .muscle-map{width:100%;height:60px}
+.library-list{max-height:360px;overflow:auto;overscroll-behavior:contain}
+.library-item{min-height:66px;padding:7px;gap:7px}
+.library-item b{font-size:12px}
+.library-item small{font-size:10px}
+.exercise-detail{position:static;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);gap:5px;align-content:start}
+.detail-art{display:flex;align-items:center;justify-content:center;min-height:120px}
+.detail-art .muscle-map{width:100%;max-height:190px}
+.muscle-legend{padding:5px 0;gap:8px}
+.exercise-detail h3{margin:5px 0;font-size:16px}
+.detail-meta{margin:4px 0}
+.detail-desc{margin:5px 0}
+@media(max-width:600px){
+ .picker{padding:10px}
+ .picker-layout{grid-template-columns:minmax(0,1fr);gap:9px}
+ .library-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:236px;overflow-y:auto;padding-right:2px}
+ .library-item{min-width:0;min-height:62px;padding:6px;gap:6px}
+ .library-item .mini-anatomy{width:48px;flex-basis:48px}
+ .mini-anatomy .muscle-map{height:52px}
+ .library-item b{font-size:11px;overflow-wrap:anywhere}
+ .library-item small{font-size:9px}
+ .exercise-detail{display:grid;grid-template-columns:104px minmax(0,1fr);column-gap:10px;row-gap:3px;padding:10px}
+ .detail-art{grid-column:1;grid-row:1 / span 6;min-height:0;align-self:start}
+ .detail-art .muscle-map{width:100%;max-height:148px}
+ .muscle-legend{grid-column:2;padding:0;gap:6px;font-size:9px}
+ .exercise-detail h3{grid-column:2;margin:2px 0;font-size:15px}
+ .target-pill{grid-column:2;justify-self:start;font-size:10px;padding:5px 7px}
+ .detail-meta{grid-column:2;font-size:10px;line-height:1.45;margin:2px 0;overflow-wrap:anywhere}
+ .detail-desc{grid-column:1 / -1;font-size:11px;line-height:1.5;margin:5px 0}
+ .exercise-detail .primary{grid-column:1 / -1;margin-top:3px}
+ .category-chips{gap:6px}
+ .category-chip{padding:8px 11px;font-size:11px}
+ .search-input{margin:0 0 8px}
+}
+@media(min-width:601px){
+ .library-list{max-height:520px}
+ .exercise-detail{position:sticky;top:8px}
+}
