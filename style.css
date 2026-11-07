@@ -153,3 +153,13 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
  .detail-art{padding:5px}
  .detail-art .muscle-map{max-height:190px}
 }
+
+/* v10 anatomy atlas refinements: visible muscle separations and contours */
+.muscle-map .body{fill:#26332c;stroke:#a8b8ad;stroke-width:1.25;stroke-linejoin:round}
+.muscle-map .muscle{stroke:#111a14;stroke-width:1.35;stroke-linejoin:round;stroke-linecap:round}
+.muscle-map .muscle.primary{fill:#b7f36b;stroke:#e0ffb8;stroke-width:1.45;filter:drop-shadow(0 0 3px #b7f36b88)}
+.muscle-map .muscle.secondary{fill:#68aaff;stroke:#b5d6ff;stroke-width:1.35}
+.muscle-map .anatomy-line{fill:none;stroke:#111a14;stroke-width:1.1;stroke-linecap:round;opacity:.9}
+.muscle-map .body:not(.muscle){fill:#34443a}
+.mini-anatomy{background:#0d130f;border:1px solid #34443a}
+.detail-art{background:#0d130f}
