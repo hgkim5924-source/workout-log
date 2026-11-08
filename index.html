@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="WORKOUT LOG">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=44">
+  <link rel="stylesheet" href="./style.css?v=45">
   <title>WORKOUT LOG</title>
 </head>
 <body>
@@ -61,6 +61,7 @@
       <div class="form-card">
         <label class="field-label" for="bodyDate">측정 날짜</label><input id="bodyDate" type="date" class="input">
         <div class="two-col">
+          <div><label class="field-label" for="age">나이 (만)</label><input id="age" type="number" min="1" max="120" step="1" class="input" placeholder="27"></div>
           <div><label class="field-label" for="height">키 (cm)</label><input id="height" type="number" min="1" step="0.1" class="input" placeholder="176.0"></div>
           <div><label class="field-label" for="weight">체중 (kg)</label><input id="weight" type="number" min="0.1" step="0.1" class="input" placeholder="68.0"></div>
         </div>
@@ -82,6 +83,8 @@
       <div class="section-head"><h3>측정 기록</h3></div><div id="bodyList" class="stack empty">아직 측정 기록이 없습니다.</div>
     </section>
 
+    <section id="analysis" class="screen"><div class="section-head"><div><p class="eyebrow">BODY ANALYSIS</p><h2>신체 분석</h2></div></div><div id="analysisContent"><div class="analysis-empty">분석 데이터를 불러오는 중입니다.</div></div></section>
+
     <section id="settings" class="screen">
       <div class="section-head"><div><p class="eyebrow">LOCAL & PRIVATE</p><h2>설정 및 데이터</h2></div></div>
       <div class="settings-card">
@@ -100,10 +103,11 @@
     <button class="tab" data-tab="record"><b>＋</b><span>기록</span></button>
     <button class="tab" data-tab="history"><b>▤</b><span>히스토리</span></button>
     <button class="tab" data-tab="bodydata"><b>◈</b><span>신체</span></button>
+    <button class="tab" data-tab="analysis"><b>⌁</b><span>분석</span></button>
     <button class="tab" data-tab="settings"><b>⚙</b><span>설정</span></button>
   </nav>
   <input id="backupInput" type="file" accept="application/json" hidden>
   <div id="toast" role="status" class="toast"></div>
-  <script src="./app.js?v=55"></script>
+  <script src="./app.js?v=56"></script>
 </body>
 </html>
