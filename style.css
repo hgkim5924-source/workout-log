@@ -541,3 +541,43 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 #bodydata .form-card{min-width:0}
 #bodyDate{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px;font-size:16px}
 #bodydata .form-card input,#bodydata .form-card select{min-width:0;max-width:100%}
+
+
+/* v49: InBody-inspired CID layout with real measurement units and high-contrast normal bands */
+.cid-shape-summary{gap:6px}
+.cid-shape-kicker{font-size:9px;letter-spacing:1.1px;font-weight:800;color:#8fb8cf}
+.cid-shape-summary strong{font-size:19px;line-height:1.35}
+.cid-shape-summary small{font-size:10px;line-height:1.55;color:#c0cbc4}
+.cid-analysis-section{display:flex;flex-direction:column;gap:9px;padding:13px;background:#131a17;border:1px solid #344238;border-radius:12px;min-width:0}
+.cid-analysis-section.obesity{background:#171819}
+.cid-analysis-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding-bottom:7px;border-bottom:1px solid #39443d}
+.cid-analysis-title b{font-size:13px;color:var(--text)}
+.cid-analysis-title span{font-size:9px;letter-spacing:.8px;font-weight:800;color:#94a7b4}
+.cid-gauge-row{display:flex;flex-direction:column;gap:7px;min-width:0;padding:9px 2px 5px}
+.cid-gauge-row+.cid-gauge-row{border-top:1px solid #303a34}
+.cid-gauge-head{display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0}
+.cid-gauge-name{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cid-gauge-name strong{font-size:12px;font-weight:800}
+.cid-gauge-name small{font-size:10px;color:#b7c4bc}
+.cid-gauge-result{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;text-align:right}
+.cid-gauge-result>b{font-family:'Barlow Condensed',sans-serif;font-size:18px;line-height:1.1;color:#fff;white-space:nowrap}
+.cid-status{display:inline-flex;align-items:center;justify-content:center;padding:4px 7px;border-radius:5px;font-size:9px;font-weight:900;white-space:nowrap}
+.cid-status.normal{background:#145b42;color:#c4f8d9;border:1px solid #2b9b6a}
+.cid-status.low{background:#633c12;color:#ffe0a8;border:1px solid #b7791f}
+.cid-status.high{background:#642b32;color:#ffd2d6;border:1px solid #c34e5b}
+.cid-gauge-track{position:relative;height:13px;margin:3px 1px 0;background:#36413c;border:1px solid #66736b;border-radius:3px;overflow:visible}
+.cid-normal-band{position:absolute;top:-1px;bottom:-1px;min-width:3px;background:#176b9b;border-left:2px solid #8bdcff;border-right:2px solid #8bdcff;box-sizing:border-box;border-radius:2px}
+.cid-value-marker{position:absolute;z-index:2;top:-5px;width:3px;height:21px;transform:translateX(-50%);background:#ffbd59;border:1px solid #fff4d7;border-radius:2px;box-shadow:0 0 0 1px #754a16,0 1px 5px #000}
+.cid-gauge-axis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;color:#aebbb3;font-size:9px;font-variant-numeric:tabular-nums}
+.cid-gauge-axis span{text-align:center}
+.cid-gauge-axis span:first-child{text-align:left}
+.cid-gauge-axis span:last-child{text-align:right}
+.cid-method-note{margin:0 2px}
+@media(max-width:390px){
+ .cid-analysis-section{padding:10px;gap:7px}
+ .cid-gauge-head{align-items:flex-start}
+ .cid-gauge-result{gap:5px}
+ .cid-gauge-result>b{font-size:17px}
+ .cid-gauge-name small{font-size:9px}
+ .cid-gauge-axis{font-size:8px}
+}
