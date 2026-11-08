@@ -20,7 +20,7 @@ function applyWeightUnit(next){
  if(!['kg','lbs'].includes(next))return;
  if(next!==weightUnit){
   document.querySelectorAll('.exercise-card .set-row').forEach(row=>{
-   const input=row.children[1];
+   const input=row.querySelector('.weight-input');
    if(input.value!==''){
     const storedKg=Number(input.dataset.weightKg);
     const kg=Number.isFinite(storedKg)?storedKg:weightConvert(input.value,weightUnit,'kg');
@@ -42,7 +42,7 @@ function exerciseCard(name='',setsData=null){
   const initialWeight=data.weight??'';
   const initialKg=initialWeight===''?'':(data.weightKg??weightConvert(initialWeight,data.weightUnit||weightUnit,'kg'));
   row.className='set-row';
-  row.innerHTML=`<span>${n}</span><input type="number" min="0" step="0.5" placeholder="0" value="${initialWeight}" aria-label="${n}세트 중량"><input type="number" min="0" step="1" placeholder="0" value="${data.reps??''}" aria-label="${n}세트 횟수"><button class="copy-row" aria-label="이 세트 값을 이후 세트에 복사" title="이 세트 값을 이후 세트에 복사">↓</button><button class="complete-set" type="button" aria-label="${n}세트 완료 표시" aria-pressed="${data.completed===true}">${data.completed===true?'✓':'○'}</button><button class="remove-row" aria-label="세트 삭제">×</button>`;
+  row.innerHTML=`<span>${n}</span><div class="set-adjust"><button class="adjust-weight down" type="button" aria-label="${n}세트 중량 2.5 감소">−</button><input class="weight-input" type="number" min="0" step="0.5" placeholder="0" value="${initialWeight}" aria-label="${n}세트 중량"><button class="adjust-weight up" type="button" aria-label="${n}세트 중량 2.5 증가">+</button></div><div class="set-adjust"><button class="adjust-reps down" type="button" aria-label="${n}세트 횟수 1 감소">−</button><input class="reps-input" type="number" min="0" step="1" placeholder="0" value="${data.reps??''}" aria-label="${n}세트 횟수"><button class="adjust-reps up" type="button" aria-label="${n}세트 횟수 1 증가">+</button></div><button class="copy-row" aria-label="이 세트 값을 이후 세트에 복사" title="이 세트 값을 이후 세트에 복사">↓</button><button class="complete-set" type="button" aria-label="${n}세트 완료 표시" aria-pressed="${data.completed===true}">${data.completed===true?'✓':'○'}</button><button class="remove-row" aria-label="세트 삭제">×</button>`;
   const completeButton=row.querySelector('.complete-set');
   if(data.completed===true)row.classList.add('set-completed');
   completeButton.onclick=()=>{
@@ -51,13 +51,25 @@ function exerciseCard(name='',setsData=null){
    completeButton.setAttribute('aria-pressed',String(done));
    completeButton.setAttribute('aria-label',`${n}세트 ${done?'완료':'미완료'} 표시`);
   };
-  const weightInput=row.children[1];
+  const repsInput=row.querySelector('.reps-input');
+  const adjust=(input,delta,isWeight)=>{
+   const current=input.value===''?0:Number(input.value);
+   const next=Math.max(0,Math.round((current+delta)*10)/10);
+   input.value=String(next);
+   if(isWeight)input.dataset.weightKg=String(weightConvert(next,weightUnit,'kg'));
+   input.dispatchEvent(new Event('input',{bubbles:true}));
+  };
+  row.querySelector('.adjust-weight.down').onclick=()=>adjust(weightInput,-2.5,true);
+  row.querySelector('.adjust-weight.up').onclick=()=>adjust(weightInput,2.5,true);
+  row.querySelector('.adjust-reps.down').onclick=()=>adjust(repsInput,-1,false);
+  row.querySelector('.adjust-reps.up').onclick=()=>adjust(repsInput,1,false);
+  const weightInput=row.querySelector('.weight-input');
   if(initialWeight!=='')weightInput.dataset.weightKg=String(initialKg);
   row.querySelector('.remove-row').onclick=()=>{row.remove();[...card.querySelectorAll('.set-row span')].forEach((x,i)=>x.textContent=i+1);updateExerciseSummary(card)};
   row.querySelector('.copy-row').onclick=()=>{
-   const rows=[...card.querySelectorAll('.set-row')],idx=rows.indexOf(row),w=weightInput.value,r=row.children[2].value;
+   const rows=[...card.querySelectorAll('.set-row')],idx=rows.indexOf(row),w=weightInput.value,r=row.querySelector('.reps-input').value;
    if(!w&&!r){toast('먼저 중량 또는 횟수를 입력하세요.');return}
-   rows.slice(idx+1).forEach(x=>{x.children[1].value=w;x.children[1].dataset.weightKg=weightInput.dataset.weightKg||'';x.children[2].value=r});
+   rows.slice(idx+1).forEach(x=>{x.querySelector('.weight-input').value=w;x.querySelector('.weight-input').dataset.weightKg=weightInput.dataset.weightKg||'';x.querySelector('.reps-input').value=r});
    updateExerciseSummary(card);toast('이후 세트에 동일한 값을 적용했습니다.')
   };
   row.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>{
@@ -68,13 +80,13 @@ function exerciseCard(name='',setsData=null){
  };
  card.querySelector('.add-set').onclick=()=>add();
  (setsData&&setsData.length?setsData:[{},{},{}]).forEach(add);
- card.querySelector('.copy-all').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')];if(!rows.length)return;const w=rows[0].children[1].value,r=rows[0].children[2].value,kg=rows[0].children[1].dataset.weightKg;if(!w&&!r){toast('첫 세트의 중량 또는 횟수를 입력하세요.');return}rows.slice(1).forEach(x=>{x.children[1].value=w;x.children[1].dataset.weightKg=kg||'';x.children[2].value=r});updateExerciseSummary(card);toast('첫 세트 값을 모든 세트에 적용했습니다.')};
+ card.querySelector('.copy-all').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')];if(!rows.length)return;const w=rows[0].querySelector('.weight-input').value,r=rows[0].querySelector('.reps-input').value,kg=rows[0].querySelector('.weight-input').dataset.weightKg;if(!w&&!r){toast('첫 세트의 중량 또는 횟수를 입력하세요.');return}rows.slice(1).forEach(x=>{x.querySelector('.weight-input').value=w;x.querySelector('.weight-input').dataset.weightKg=kg||'';x.querySelector('.reps-input').value=r});updateExerciseSummary(card);toast('첫 세트 값을 모든 세트에 적용했습니다.')};
  card.querySelector('.finish-exercise').onclick=()=>{card.classList.toggle('completed');card.querySelector('.finish-exercise').textContent=card.classList.contains('completed')?'완료 취소':'종목 완료';updateExerciseSummary(card,true)};
  card.querySelector('.ex-name').addEventListener('input',()=>updateExerciseSummary(card));
  $('#exerciseList').append(card);updateExerciseSummary(card);
 }
 function exerciseMetrics(card){
- const sets=[...card.querySelectorAll('.set-row')].map(r=>({weight:Number(r.children[1].value)||0,reps:Number(r.children[2].value)||0,completed:r.classList.contains('set-completed')})).filter(s=>s.reps>0);
+ const sets=[...card.querySelectorAll('.set-row')].map(r=>({weight:Number(r.querySelector('.weight-input').value)||0,reps:Number(r.querySelector('.reps-input').value)||0,completed:r.classList.contains('set-completed')})).filter(s=>s.reps>0);
  const reps=sets.reduce((n,s)=>n+s.reps,0),volume=sets.reduce((n,s)=>n+s.weight*s.reps,0);
  const oneRM=sets.reduce((m,s)=>s.weight>0?Math.max(m,s.weight*(1+s.reps/30)):m,0);
  return {sets,reps,volume,oneRM};
