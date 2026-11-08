@@ -71,14 +71,16 @@
           <div><label class="field-label" for="fat">체지방량 (kg)</label><input id="fat" type="number" min="0" step="0.1" class="input" placeholder="10.0"></div>
         </div>
         <div class="cid-standard-entry">
-          <strong>CID 골격근량 기준 범위 (선택)</strong>
+          <strong>CID 표준 범위 입력 (선택)</strong>
           <p class="hint">인바디 결과지에 표시된 SMM(골격근량)·BFM(체지방량)의 정상범위 하한과 상한을 입력하세요. 기종에 따라 기준범위가 다를 수 있으므로 실제 본인 결과지의 범위를 사용합니다. SMM은 90~110%, BFM은 80~160% 기준으로 100% 기준값을 역산합니다. 입력하지 않으면 해당 지표의 CID 판정과 C/I/D 형태는 미확정으로 표시합니다.</p>
           <div class="two-col">
             <div><label class="field-label" for="smmMin">SMM 표준 하한 (kg)</label><input id="smmMin" type="number" min="0" step="0.1" class="input" placeholder="20.3"></div>
             <div><label class="field-label" for="smmMax">SMM 표준 상한 (kg)</label><input id="smmMax" type="number" min="0" step="0.1" class="input" placeholder="24.9"></div>
           </div>
-          <div><label class="field-label" for="bfmMin">BFM 표준 하한 (kg)</label><input id="bfmMin" type="number" min="0" step="0.1" class="input" placeholder="예: 10.8"></div>
-          <div><label class="field-label" for="bfmMax">BFM 표준 상한 (kg)</label><input id="bfmMax" type="number" min="0" step="0.1" class="input" placeholder="예: 17.2"></div>
+          <div class="two-col">
+            <div><label class="field-label" for="bfmMin">BFM 표준 하한 (kg)</label><input id="bfmMin" type="number" min="0" step="0.1" class="input" placeholder="예: 10.8"></div>
+            <div><label class="field-label" for="bfmMax">BFM 표준 상한 (kg)</label><input id="bfmMax" type="number" min="0" step="0.1" class="input" placeholder="예: 17.2"></div>
+          </div>
         </div>
         <div class="body-calculated">
           <div class="body-calculated-item"><span>자동 계산 체지방률</span><strong id="bodyFatPreview">—</strong></div>
