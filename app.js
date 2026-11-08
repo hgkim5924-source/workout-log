@@ -417,8 +417,65 @@ async function renderHistory(){
  }).join('')}</article>`).join(''):'저장된 운동이 없습니다.';
  document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{if(confirm('이 운동 기록을 삭제할까요?')){await put('logs',(await get('logs')).filter(x=>x.id!==b.dataset.delete));renderHistory()}});
 }
-$('#saveBody').onclick=async()=>{const entry={id:crypto.randomUUID(),date:$('#bodyDate').value||today(),weight:Number($('#weight').value)||null,muscle:Number($('#muscle').value)||null,fat:Number($('#fat').value)||null};if(!entry.weight&&!entry.muscle&&!entry.fat){toast('측정값을 하나 이상 입력하세요.');return}const arr=await get('body');arr.push(entry);arr.sort((a,b)=>b.date.localeCompare(a.date));await put('body',arr);$('#weight').value=$('#muscle').value=$('#fat').value='';toast('신체 기록을 저장했습니다.');renderBody()};
-async function renderBody(){const arr=await get('body');$('#bodyList').className='stack'+(arr.length?'':' empty');$('#bodyList').innerHTML=arr.length?arr.map(x=>`<article class="item-card"><h4>${dateText(x.date)}</h4><p>체중 ${x.weight??'-'}kg · 골격근량 ${x.muscle??'-'}kg · 체지방량 ${x.fat??'-'}kg</p></article>`).join(''):'아직 측정 기록이 없습니다.'}
+function bodyNumber(id){
+ const raw=$('#'+id).value.trim();
+ if(!raw)return null;
+ const value=Number(raw);
+ return Number.isFinite(value)?value:null;
+}
+function bodyMetrics(height,weight,fat){
+ const h=Number(height),w=Number(weight),f=Number(fat);
+ return {
+  bodyFatPercent:Number.isFinite(w)&&w>0&&Number.isFinite(f)&&f>=0?f/w*100:null,
+  bmi:Number.isFinite(h)&&h>0&&Number.isFinite(w)&&w>0?w/((h/100)*(h/100)):null
+ };
+}
+function updateBodyCalculations(){
+ const metrics=bodyMetrics(bodyNumber('height'),bodyNumber('weight'),bodyNumber('fat'));
+ $('#bodyFatPreview').textContent=metrics.bodyFatPercent===null?'—':metrics.bodyFatPercent.toFixed(1)+'%';
+ $('#bmiPreview').textContent=metrics.bmi===null?'—':metrics.bmi.toFixed(1);
+}
+['height','weight','muscle','fat'].forEach(id=>$('#'+id).addEventListener('input',updateBodyCalculations));
+
+$('#saveBody').onclick=async()=>{
+ const arr=await get('body');
+ const latestHeightEntry=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).find(x=>Number(x.height)>0);
+ const height=bodyNumber('height')??(latestHeightEntry?Number(latestHeightEntry.height):null);
+ const entry={
+  id:crypto.randomUUID(),
+  date:$('#bodyDate').value||today(),
+  height,
+  weight:bodyNumber('weight'),
+  muscle:bodyNumber('muscle'),
+  fat:bodyNumber('fat')
+ };
+ if(entry.weight===null&&entry.muscle===null&&entry.fat===null){
+  toast('체중, 골격근량, 체지방량 중 하나 이상 입력하세요.');
+  return;
+ }
+ arr.push(entry);
+ arr.sort((a,b)=>b.date.localeCompare(a.date));
+ await put('body',arr);
+ $('#weight').value=$('#muscle').value=$('#fat').value='';
+ $('#height').value=height??'';
+ updateBodyCalculations();
+ toast('신체 기록을 저장했습니다.');
+ renderBody();
+};
+async function renderBody(){
+ const arr=await get('body');
+ const latestHeightEntry=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).find(x=>Number(x.height)>0);
+ const latestHeight=latestHeightEntry?Number(latestHeightEntry.height):null;
+ if(!$('#height').value&&latestHeight)$('#height').value=latestHeight;
+ updateBodyCalculations();
+ $('#bodyList').className='stack'+(arr.length?'':' empty');
+ $('#bodyList').innerHTML=arr.length?arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(x=>{
+  const height=Number(x.height)>0?Number(x.height):latestHeight;
+  const metrics=bodyMetrics(height,x.weight,x.fat);
+  const fmt=value=>value===null||value===undefined||!Number.isFinite(Number(value))?'-':Number(value).toLocaleString('ko-KR',{maximumFractionDigits:1});
+  return `<article class="item-card"><h4>${dateText(x.date)}</h4><p>키 ${fmt(height)}cm · 체중 ${fmt(x.weight)}kg · 골격근량 ${fmt(x.muscle)}kg · 체지방량 ${fmt(x.fat)}kg</p><p class="body-record-calculated">체지방률 ${metrics.bodyFatPercent===null?'-':metrics.bodyFatPercent.toFixed(1)+'%'} · BMI ${metrics.bmi===null?'-':metrics.bmi.toFixed(1)}</p></article>`;
+ }).join(''):'아직 측정 기록이 없습니다.';
+}
 async function exportData(){const data={version:1,exportedAt:new Date().toISOString(),logs:await get('logs'),body:await get('body'),customExercises:await get('customExercises'),settings:{weightUnit}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`workout-log-backup-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 내보냈습니다.')}
 async function importData(file){try{const data=JSON.parse(await file.text());if(!Array.isArray(data.logs)||!Array.isArray(data.body))throw Error();if(!confirm('가져온 데이터로 현재 기록을 교체할까요?'))return;await put('logs',data.logs);await put('body',data.body);if(Array.isArray(data.customExercises))await put('customExercises',data.customExercises);if(data.settings?.weightUnit){weightUnit=data.settings.weightUnit==='lbs'?'lbs':'kg';await put('settings',{weightUnit});$('#recordWeightUnit').value=weightUnit;}await refreshCustom();renderCategories();renderLibrary();toast('백업 데이터를 복원했습니다.');renderHome()}catch{toast('올바른 백업 파일이 아닙니다.')}}
 $('#recordWeightUnit').onchange=async e=>{applyWeightUnit(e.target.value);await put('settings',{weightUnit});toast(`운동 기록 단위를 ${weightUnit}로 변경했습니다.`)};
