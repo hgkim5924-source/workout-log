@@ -16,20 +16,52 @@ $('#todayLabel').textContent=dateText(today());$('#bodyDate').value=today();
 
 function weightConvert(value,from,to){const n=Number(value);if(!Number.isFinite(n))return 0;if(from===to)return n;return from==='kg'?n*2.2046226218:n/2.2046226218;}
 let weightUnit='kg';
-function applyWeightUnit(next){if(!['kg','lbs'].includes(next)||next===weightUnit)return;document.querySelectorAll('.exercise-card .set-row').forEach(row=>{const input=row.children[1];if(input.value!=='')input.value=String(Math.round(weightConvert(input.value,weightUnit,next)*10)/10)});weightUnit=next;document.querySelectorAll('.set-head span:nth-child(2)').forEach(x=>x.textContent=`중량 (${weightUnit})`);document.querySelectorAll('.exercise-card').forEach(updateExerciseSummary);}
+function applyWeightUnit(next){
+ if(!['kg','lbs'].includes(next))return;
+ if(next!==weightUnit){
+  document.querySelectorAll('.exercise-card .set-row').forEach(row=>{
+   const input=row.children[1];
+   if(input.value!==''){
+    const storedKg=Number(input.dataset.weightKg);
+    const kg=Number.isFinite(storedKg)?storedKg:weightConvert(input.value,weightUnit,'kg');
+    input.value=String(Math.round(weightConvert(kg,'kg',next)*10)/10);
+   }
+  });
+  weightUnit=next;
+ }
+ $('#weightUnit').value=weightUnit;
+ $('#recordWeightUnit').value=weightUnit;
+ document.querySelectorAll('.set-head span:nth-child(2)').forEach(x=>x.textContent=`중량 (${weightUnit})`);
+ document.querySelectorAll('.exercise-card').forEach(updateExerciseSummary);
+}
 function exerciseCard(name='',setsData=null){
  const card=document.createElement('div');card.className='exercise-card';
  card.innerHTML=`<div class="exercise-top"><input class="input ex-name" placeholder="운동 종목 (예: 랫풀다운)" value="${escapeHTML(name)}"><button class="remove">삭제</button></div><div class="set-head"><span>세트</span><span>중량 (${weightUnit})</span><span>횟수</span><span>복사</span><span></span></div><div class="sets"></div><div class="exercise-tools"><button class="copy-all">첫 세트 값 전체 적용</button><button class="finish-exercise">종목 완료</button></div><div class="exercise-summary"></div><button class="add-set">＋ 세트 추가</button>`;
  card.querySelector('.remove').onclick=()=>card.remove();
- const add=(data={})=>{const n=card.querySelectorAll('.set-row').length+1;const row=document.createElement('div');row.className='set-row';row.innerHTML=`<span>${n}</span><input type="number" min="0" step="0.5" placeholder="0" value="${data.weight??''}" aria-label="${n}세트 중량"><input type="number" min="0" step="1" placeholder="0" value="${data.reps??''}" aria-label="${n}세트 횟수"><button class="copy-row" aria-label="이 세트 값을 이후 세트에 복사" title="이 세트 값을 이후 세트에 복사">↓</button><button class="remove-row" aria-label="세트 삭제">×</button>`;
+ const add=(data={})=>{
+  const n=card.querySelectorAll('.set-row').length+1,row=document.createElement('div');
+  const initialWeight=data.weight??'';
+  const initialKg=initialWeight===''?'':(data.weightKg??weightConvert(initialWeight,data.weightUnit||weightUnit,'kg'));
+  row.className='set-row';
+  row.innerHTML=`<span>${n}</span><input type="number" min="0" step="0.5" placeholder="0" value="${initialWeight}" aria-label="${n}세트 중량"><input type="number" min="0" step="1" placeholder="0" value="${data.reps??''}" aria-label="${n}세트 횟수"><button class="copy-row" aria-label="이 세트 값을 이후 세트에 복사" title="이 세트 값을 이후 세트에 복사">↓</button><button class="remove-row" aria-label="세트 삭제">×</button>`;
+  const weightInput=row.children[1];
+  if(initialWeight!=='')weightInput.dataset.weightKg=String(initialKg);
   row.querySelector('.remove-row').onclick=()=>{row.remove();[...card.querySelectorAll('.set-row span')].forEach((x,i)=>x.textContent=i+1);updateExerciseSummary(card)};
-  row.querySelector('.copy-row').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')],idx=rows.indexOf(row),w=row.children[1].value,r=row.children[2].value;if(!w&&!r){toast('먼저 중량 또는 횟수를 입력하세요.');return}rows.slice(idx+1).forEach(x=>{x.children[1].value=w;x.children[2].value=r});updateExerciseSummary(card);toast('이후 세트에 동일한 값을 적용했습니다.')};
-  row.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>updateExerciseSummary(card)));
+  row.querySelector('.copy-row').onclick=()=>{
+   const rows=[...card.querySelectorAll('.set-row')],idx=rows.indexOf(row),w=weightInput.value,r=row.children[2].value;
+   if(!w&&!r){toast('먼저 중량 또는 횟수를 입력하세요.');return}
+   rows.slice(idx+1).forEach(x=>{x.children[1].value=w;x.children[1].dataset.weightKg=weightInput.dataset.weightKg||'';x.children[2].value=r});
+   updateExerciseSummary(card);toast('이후 세트에 동일한 값을 적용했습니다.')
+  };
+  row.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>{
+   if(i===weightInput)weightInput.dataset.weightKg=i.value===''?'':String(weightConvert(i.value,weightUnit,'kg'));
+   updateExerciseSummary(card)
+  }));
   card.querySelector('.sets').append(row);
  };
  card.querySelector('.add-set').onclick=()=>add();
  (setsData&&setsData.length?setsData:[{},{},{}]).forEach(add);
- card.querySelector('.copy-all').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')];if(!rows.length)return;const w=rows[0].children[1].value,r=rows[0].children[2].value;if(!w&&!r){toast('첫 세트의 중량 또는 횟수를 입력하세요.');return}rows.slice(1).forEach(x=>{x.children[1].value=w;x.children[2].value=r});updateExerciseSummary(card);toast('첫 세트 값을 모든 세트에 적용했습니다.')};
+ card.querySelector('.copy-all').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')];if(!rows.length)return;const w=rows[0].children[1].value,r=rows[0].children[2].value,kg=rows[0].children[1].dataset.weightKg;if(!w&&!r){toast('첫 세트의 중량 또는 횟수를 입력하세요.');return}rows.slice(1).forEach(x=>{x.children[1].value=w;x.children[1].dataset.weightKg=kg||'';x.children[2].value=r});updateExerciseSummary(card);toast('첫 세트 값을 모든 세트에 적용했습니다.')};
  card.querySelector('.finish-exercise').onclick=()=>{card.classList.toggle('completed');card.querySelector('.finish-exercise').textContent=card.classList.contains('completed')?'완료 취소':'종목 완료';updateExerciseSummary(card,true)};
  card.querySelector('.ex-name').addEventListener('input',()=>updateExerciseSummary(card));
  $('#exerciseList').append(card);updateExerciseSummary(card);
@@ -368,7 +400,7 @@ $('#loadPrevious').onclick=async()=>{
  const last=logs[0];
  $('#sessionName').value=last.name||'';
  $('#exerciseList').innerHTML='';
- last.exercises.forEach(ex=>{const from=ex.weightUnit||'kg';const converted=(ex.sets||[]).map(s=>({...s,weight:s.weight==null?'':Math.round(weightConvert(s.weight,from,weightUnit)*10)/10}));exerciseCard(ex.name,converted)});
+ last.exercises.forEach(ex=>{const from=ex.weightUnit||'kg';const converted=(ex.sets||[]).map(s=>({...s,weight:s.weight==null?'':Math.round(weightConvert(s.weight,from,weightUnit)*10)/10,weightKg:s.weight==null?'':weightConvert(s.weight,from,'kg'),weightUnit}));exerciseCard(ex.name,converted)});
  toast(`${dateText(last.date)} 기록을 불러왔습니다. 중량과 횟수를 수정해 저장하세요.`);
 };
 $('#saveWorkout').onclick=async()=>{const exercises=[...document.querySelectorAll('.exercise-card')].map(c=>{const m=exerciseMetrics(c);return {name:c.querySelector('.ex-name').value.trim(),sets:m.sets,weightUnit,totalReps:m.reps,totalVolume:m.volume,estimated1RM:m.oneRM,completed:c.classList.contains('completed')}}).filter(e=>e.name&&e.sets.length);if(!exercises.length){toast('운동 종목과 유효한 세트를 입력하세요.');return}const logs=await get('logs');logs.unshift({id:crypto.randomUUID(),date:today(),name:$('#sessionName').value.trim()||'운동',exercises});await put('logs',logs);toast('운동 기록을 저장했습니다.');go('home')};
@@ -378,8 +410,9 @@ async function renderHistory(){const logs=await get('logs');$('#historyList').cl
 $('#saveBody').onclick=async()=>{const entry={id:crypto.randomUUID(),date:$('#bodyDate').value||today(),weight:Number($('#weight').value)||null,muscle:Number($('#muscle').value)||null,fat:Number($('#fat').value)||null};if(!entry.weight&&!entry.muscle&&!entry.fat){toast('측정값을 하나 이상 입력하세요.');return}const arr=await get('body');arr.push(entry);arr.sort((a,b)=>b.date.localeCompare(a.date));await put('body',arr);$('#weight').value=$('#muscle').value=$('#fat').value='';toast('신체 기록을 저장했습니다.');renderBody()};
 async function renderBody(){const arr=await get('body');$('#bodyList').className='stack'+(arr.length?'':' empty');$('#bodyList').innerHTML=arr.length?arr.map(x=>`<article class="item-card"><h4>${dateText(x.date)}</h4><p>체중 ${x.weight??'-'}kg · 골격근량 ${x.muscle??'-'}kg · 체지방량 ${x.fat??'-'}kg</p></article>`).join(''):'아직 측정 기록이 없습니다.'}
 async function exportData(){const data={version:1,exportedAt:new Date().toISOString(),logs:await get('logs'),body:await get('body'),customExercises:await get('customExercises'),settings:{weightUnit}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`workout-log-backup-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 내보냈습니다.')}
-async function importData(file){try{const data=JSON.parse(await file.text());if(!Array.isArray(data.logs)||!Array.isArray(data.body))throw Error();if(!confirm('가져온 데이터로 현재 기록을 교체할까요?'))return;await put('logs',data.logs);await put('body',data.body);if(Array.isArray(data.customExercises))await put('customExercises',data.customExercises);if(data.settings?.weightUnit){weightUnit=data.settings.weightUnit==='lbs'?'lbs':'kg';await put('settings',{weightUnit});$('#weightUnit').value=weightUnit;}await refreshCustom();renderCategories();renderLibrary();toast('백업 데이터를 복원했습니다.');renderHome()}catch{toast('올바른 백업 파일이 아닙니다.')}}
+async function importData(file){try{const data=JSON.parse(await file.text());if(!Array.isArray(data.logs)||!Array.isArray(data.body))throw Error();if(!confirm('가져온 데이터로 현재 기록을 교체할까요?'))return;await put('logs',data.logs);await put('body',data.body);if(Array.isArray(data.customExercises))await put('customExercises',data.customExercises);if(data.settings?.weightUnit){weightUnit=data.settings.weightUnit==='lbs'?'lbs':'kg';await put('settings',{weightUnit});$('#weightUnit').value=weightUnit;$('#recordWeightUnit').value=weightUnit;}await refreshCustom();renderCategories();renderLibrary();toast('백업 데이터를 복원했습니다.');renderHome()}catch{toast('올바른 백업 파일이 아닙니다.')}}
 $('#weightUnit').onchange=async e=>{applyWeightUnit(e.target.value);await put('settings',{weightUnit});toast(`중량 단위를 ${weightUnit}로 변경했습니다.`)};
+$('#recordWeightUnit').onchange=async e=>{applyWeightUnit(e.target.value);await put('settings',{weightUnit});toast(`운동 기록 단위를 ${weightUnit}로 변경했습니다.`)};
 $('#backupBtn').onclick=exportData;$('#exportBtn').onclick=exportData;$('#importFile').onchange=e=>e.target.files[0]&&importData(e.target.files[0]);$('#clearBtn').onclick=async()=>{if(confirm('모든 운동 및 신체 기록을 영구 삭제할까요?')){await put('logs',[]);await put('body',[]);toast('모든 기록을 삭제했습니다.');renderHome()}};
 
-(async()=>{db=await openDB();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#weightUnit').value=weightUnit;await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
+(async()=>{db=await openDB();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#weightUnit').value=weightUnit;$('#recordWeightUnit').value=weightUnit;await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
