@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="WORKOUT LOG">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=43">
+  <link rel="stylesheet" href="./style.css?v=44">
   <title>WORKOUT LOG</title>
 </head>
 <body>
@@ -73,7 +73,10 @@
           <div class="body-calculated-item"><span>자동 계산 BMI</span><strong id="bmiPreview">—</strong></div>
         </div>
         <p class="hint body-calc-hint">체지방률은 체지방량 ÷ 체중 × 100, BMI는 체중 ÷ 키(m)²로 계산됩니다.</p>
-        <button class="primary wide" id="saveBody">측정 기록 저장</button>
+        <div class="body-form-actions">
+          <button class="primary wide" id="saveBody">측정 기록 저장</button>
+          <button class="secondary wide" id="cancelBodyEdit" type="button" hidden>수정 취소</button>
+        </div>
       </div>
       <div class="section-head"><h3>측정 기록</h3></div><div id="bodyList" class="stack empty">아직 측정 기록이 없습니다.</div>
     </section>
@@ -100,6 +103,6 @@
   </nav>
   <input id="backupInput" type="file" accept="application/json" hidden>
   <div id="toast" role="status" class="toast"></div>
-  <script src="./app.js?v=53"></script>
+  <script src="./app.js?v=54"></script>
 </body>
 </html>
