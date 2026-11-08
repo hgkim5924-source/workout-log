@@ -6,7 +6,7 @@ const $=s=>document.querySelector(s);
 const today=()=>new Date().toISOString().slice(0,10);
 function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 function get(key){return new Promise((res,rej)=>{const r=db.transaction(STORE).objectStore(STORE).get(key);r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
-function put(key,value){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(value,key);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+function put(key,value){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(value,key);t.oncomplete=()=>res();t.onerror=()=>rej(t.error||new Error('IndexedDB write failed'));t.onabort=()=>rej(t.error||new Error('IndexedDB transaction aborted'))})}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2100)}
 function dateText(d){return new Date(d+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'})}
 function go(tab){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===tab));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));window.scrollTo(0,0);if(tab==='home')renderHome();if(tab==='history')renderHistory();if(tab==='bodydata')renderBody();if(tab==='analysis')renderAnalysis()}
@@ -527,12 +527,18 @@ $('#saveBody').onclick=async()=>{
  if(wasEditing)arr[editingBodyIndex]=entry;
  else arr.push(entry);
  arr.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
- await put('body',arr);
+ try{
+  await put('body',arr);
+ }catch(error){
+  console.error('신체 기록 저장 실패:',error);
+  toast('신체 기록 저장에 실패했습니다. 브라우저 저장 공간을 확인하세요.');
+  return;
+ }
  resetBodyEditor();
  if(height!==null)$('#height').value=height;
  updateBodyCalculations();
  toast(wasEditing?'신체 기록을 수정했습니다.':'신체 기록을 저장했습니다.');
- renderBody();
+ await renderBody();
 };
 async function renderBody(){
  const arr=await get('body');
@@ -542,17 +548,9 @@ async function renderBody(){
  const newest=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
  const latestAge=newest.find(x=>x.age!==null&&x.age!==undefined);
  const latestSex=newest.find(x=>x.sex==='male'||x.sex==='female');
- const latestSmmMin=newest.find(x=>Number(x.smmMin)>0);
- const latestSmmMax=newest.find(x=>Number(x.smmMax)>0);
- const latestBfmMin=newest.find(x=>Number(x.bfmMin)>0);
- const latestBfmMax=newest.find(x=>Number(x.bfmMax)>0);
  if(editingBodyIndex===null){
   if(!$('#age').value&&latestAge)$('#age').value=latestAge.age;
   if(!$('#sex').value&&latestSex)$('#sex').value=latestSex.sex;
-  if(!$('#smmMin').value&&latestSmmMin)$('#smmMin').value=latestSmmMin.smmMin;
-  if(!$('#smmMax').value&&latestSmmMax)$('#smmMax').value=latestSmmMax.smmMax;
-  if(!$('#bfmMin').value&&latestBfmMin)$('#bfmMin').value=latestBfmMin.bfmMin;
-  if(!$('#bfmMax').value&&latestBfmMax)$('#bfmMax').value=latestBfmMax.bfmMax;
  }
  updateBodyCalculations();
  $('#bodyList').className='stack'+(arr.length?'':' empty');
