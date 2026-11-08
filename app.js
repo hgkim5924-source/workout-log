@@ -676,6 +676,27 @@ function koreanReferenceHtml(entry){
  '<article class="ref-card"><b>FMI · 체지방량 지수</b><strong>'+r.fmi.toFixed(1)+' kg/m²</strong><span>'+r.fmiRank.label+'</span><small>P5 '+r.fmiKnots[0]+' · P50 '+r.fmiKnots[3]+' · P95 '+r.fmiKnots[6]+'</small></article></div>'+
  '<p class="hint">2022~2023년 국민건강영양조사 자료를 사용한 한국인 10,140명(InBody970 BIA) 기준의 연령·성별 백분위 분포입니다. P5~P95는 연구 참여자의 분포 범위이지 질병 진단이나 의학적 정상 판정이 아닙니다. FFMI=(체중−체지방량)/키², FMI=체지방량/키²입니다. FFMI는 전체 제지방량 지수이며 골격근량 지수(SMI)가 아닙니다.</p>';
 }
+let analysisPeriod='all';
+let analysisSelectedId=null;
+
+function trendSvg(points){
+ const valid=(Array.isArray(points)?points:[]).filter(p=>p&&Number.isFinite(Number(p.value)));
+ if(!valid.length)return '<div class="analysis-empty">선택한 기간에 표시할 측정 데이터가 없습니다.</div>';
+ const width=320,height=112,left=12,right=12,top=12,bottom=25;
+ const values=valid.map(p=>Number(p.value));
+ let min=Math.min(...values),max=Math.max(...values);
+ if(min===max){const pad=Math.max(Math.abs(min)*.08,1);min-=pad;max+=pad;}
+ else{const pad=(max-min)*.12;min-=pad;max+=pad;}
+ const plotW=width-left-right,plotH=height-top-bottom;
+ const x=i=>valid.length===1?width/2:left+i*plotW/(valid.length-1);
+ const y=v=>top+(max-v)/(max-min)*plotH;
+ const line=valid.map((p,i)=>x(i).toFixed(1)+','+y(Number(p.value)).toFixed(1)).join(' ');
+ const dots=valid.map((p,i)=>'<circle cx="'+x(i).toFixed(1)+'" cy="'+y(Number(p.value)).toFixed(1)+'" r="3.5" fill="#b6f36b"><title>'+Number(p.value).toFixed(1)+'</title></circle>').join('');
+ const dateLabel=value=>{if(!value)return '';const d=new Date(value+'T00:00:00');return Number.isNaN(d.getTime())?'':(d.getMonth()+1)+'/'+d.getDate();};
+ const first=dateLabel(valid[0].date),last=dateLabel(valid[valid.length-1].date);
+ return '<svg class="trend-svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="신체 변화 추이 그래프"><line x1="'+left+'" y1="'+(height-bottom)+'" x2="'+(width-right)+'" y2="'+(height-bottom)+'" stroke="currentColor" opacity=".18"/><line x1="'+left+'" y1="'+(top+plotH/2)+'" x2="'+(width-right)+'" y2="'+(top+plotH/2)+'" stroke="currentColor" opacity=".10"/><polyline points="'+line+'" fill="none" stroke="#b6f36b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'<g fill="currentColor" opacity=".65" font-size="9"><text x="'+left+'" y="'+(height-7)+'">'+first+'</text><text x="'+(width-right)+'" y="'+(height-7)+'" text-anchor="end">'+last+'</text></g></svg>';
+}
+
 async function renderAnalysis(){
  const all=(await get('body')).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
  const now=new Date();let start=null;
