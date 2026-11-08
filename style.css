@@ -581,3 +581,12 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
  .cid-gauge-name small{font-size:9px}
  .cid-gauge-axis{font-size:8px}
 }
+
+
+/* v50: per-set completion toggle */
+.set-head,.set-row{grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 28px 28px 28px;gap:5px}
+.set-row .complete-set{height:34px;min-width:28px;padding:0;border:1px solid #46534a;border-radius:8px;background:#202a23;color:#aeb8b0;font-size:17px;font-weight:900;line-height:1}
+.set-row.set-completed .complete-set{background:#294d31;border-color:#91d65b;color:#c3ff80}
+.set-row.set-completed>span:first-child{color:#baf276;font-weight:800}
+.set-row.set-completed input{border-color:#56734a}
+@media(max-width:390px){.set-head,.set-row{grid-template-columns:21px minmax(0,1fr) minmax(0,1fr) 24px 24px 24px;gap:3px}.set-row .complete-set{height:32px;min-width:24px;font-size:15px}}
