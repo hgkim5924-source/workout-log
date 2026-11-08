@@ -130,9 +130,9 @@ function exerciseCard(name='',setsData=null,previousDate=''){
   if(!typed||card.dataset.previousLoaded==='true')return;
   const currentRows=[...card.querySelectorAll('.set-row')];
   if(currentRows.some(r=>r.querySelector('.weight-input').value!==''||r.querySelector('.reps-input').value!==''))return;
-  const logs=await get('logs'),normalized=typed.replace(/\\s+/g,' ').toLocaleLowerCase();
+  const logs=await get('logs'),normalized=typed.replace(/\s+/g,' ').toLocaleLowerCase();
   for(const log of logs){
-   const previous=(log.exercises||[]).find(item=>String(item.name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase()===normalized);
+   const previous=(log.exercises||[]).find(item=>String(item.name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase()===normalized);
    if(!previous)continue;
    const from=previous.weightUnit||'kg',sets=(previous.sets||[]).map(set=>({...set,weight:set.weight==null?'':Math.round(weightConvert(set.weight,from,weightUnit)*10)/10,weightKg:set.weight==null?'':weightConvert(set.weight,from,'kg'),weightUnit,completed:false}));
    card.querySelector('.sets').innerHTML='';
@@ -175,10 +175,10 @@ function newSession(){go('record');$('#sessionName').value='';$('#exerciseList')
 
 async function addExerciseWithPrevious(name){
  const logs=await get('logs');
- const normalized=String(name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase();
+ const normalized=String(name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase();
  let match=null;
  for(const log of logs){
-  const exercise=(log.exercises||[]).find(item=>String(item.name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase()===normalized);
+  const exercise=(log.exercises||[]).find(item=>String(item.name||'').trim().replace(/\s+/g,' ').toLocaleLowerCase()===normalized);
   if(exercise){match={log,exercise};break}
  }
  if(!match){exerciseCard(name);toast(`${name} 추가 완료 · 이전 기록 없음`);return}
