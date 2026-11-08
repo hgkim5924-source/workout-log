@@ -590,3 +590,19 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .set-row.set-completed>span:first-child{color:#baf276;font-weight:800}
 .set-row.set-completed input{border-color:#56734a}
 @media(max-width:390px){.set-head,.set-row{grid-template-columns:21px minmax(0,1fr) minmax(0,1fr) 24px 24px 24px;gap:3px}.set-row .complete-set{height:32px;min-width:24px;font-size:15px}}
+
+/* v51: compact +/- controls beside set load and rep inputs */
+.set-head,.set-row{grid-template-columns:24px minmax(0,1.25fr) minmax(0,1.25fr) 25px 25px 25px;gap:4px}
+.set-head span:nth-child(2),.set-head span:nth-child(3){text-align:center}
+.set-adjust{display:flex;align-items:stretch;gap:2px;min-width:0}
+.set-adjust input{flex:1;width:0;min-width:0;padding:9px 2px!important;font-size:13px}
+.set-adjust button{flex:0 0 23px;width:23px;min-width:23px;padding:0;border:1px solid #39443d!important;border-radius:6px;background:#202923!important;color:#baf276!important;font-size:16px!important;font-weight:800;line-height:1}
+.set-adjust button:active{background:#36513a!important;transform:scale(.94)}
+.set-row .copy-row,.set-row .complete-set,.set-row .remove-row{width:25px;min-width:25px;padding:0}
+@media(max-width:390px){
+ .set-head,.set-row{grid-template-columns:19px minmax(0,1.25fr) minmax(0,1.25fr) 22px 22px 22px;gap:2px}
+ .set-adjust{gap:1px}
+ .set-adjust button{flex-basis:19px;width:19px;min-width:19px;font-size:14px!important}
+ .set-adjust input{font-size:12px;padding:8px 1px!important}
+ .set-row .copy-row,.set-row .complete-set,.set-row .remove-row{width:22px;min-width:22px;font-size:15px}
+}
