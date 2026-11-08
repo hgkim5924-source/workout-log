@@ -73,9 +73,9 @@ function applyWeightUnit(next){
  document.querySelectorAll('.set-head span:nth-child(2)').forEach(x=>x.textContent=`중량 (${weightUnit})`);
  document.querySelectorAll('.exercise-card').forEach(updateExerciseSummary);
 }
-function exerciseCard(name='',setsData=null){
+function exerciseCard(name='',setsData=null,previousDate=''){
  const card=document.createElement('div');card.className='exercise-card';
- card.innerHTML=`<div class="exercise-top"><input class="input ex-name" placeholder="운동 종목 (예: 랫풀다운)" value="${escapeHTML(name)}"><button class="remove">삭제</button></div><div class="set-head"><span>세트</span><span>중량 (${weightUnit})</span><span>횟수</span><span>복사</span><span>완료</span><span></span></div><div class="sets"></div><div class="exercise-tools"><button class="copy-all">첫 세트 값 전체 적용</button><button class="finish-exercise">종목 완료</button></div><div class="exercise-summary"></div><button class="add-set">＋ 세트 추가</button>`;
+ card.innerHTML=`<div class="exercise-top"><input class="input ex-name" placeholder="운동 종목 (예: 랫풀다운)" value="${escapeHTML(name)}"><button class="remove">삭제</button></div><div class="previous-workout-note" ${previousDate?'':'hidden'}>직전 운동 기록 · ${previousDate?escapeHTML(dateText(previousDate)):''}</div><div class="set-head"><span>세트</span><span>중량 (${weightUnit})</span><span>횟수</span><span>복사</span><span>완료</span><span></span></div><div class="sets"></div><div class="exercise-tools"><button class="copy-all">첫 세트 값 전체 적용</button><button class="finish-exercise">종목 완료</button></div><div class="exercise-summary"></div><button class="add-set">＋ 세트 추가</button>`;
  card.querySelector('.remove').onclick=()=>card.remove();
  const add=(data={})=>{
   const n=card.querySelectorAll('.set-row').length+1,row=document.createElement('div');
@@ -90,6 +90,8 @@ function exerciseCard(name='',setsData=null){
    completeButton.textContent=done?'✓':'○';
    completeButton.setAttribute('aria-pressed',String(done));
    completeButton.setAttribute('aria-label',`${n}세트 ${done?'완료':'미완료'} 표시`);
+   syncAutoExerciseCompletion(card);
+   updateExerciseSummary(card);
   };
   const repsInput=row.querySelector('.reps-input');
   const adjust=(input,delta,isWeight)=>{
@@ -105,7 +107,7 @@ function exerciseCard(name='',setsData=null){
   row.querySelector('.adjust-reps.up').onclick=()=>adjust(repsInput,1,false);
   const weightInput=row.querySelector('.weight-input');
   if(initialWeight!=='')weightInput.dataset.weightKg=String(initialKg);
-  row.querySelector('.remove-row').onclick=()=>{row.remove();[...card.querySelectorAll('.set-row span')].forEach((x,i)=>x.textContent=i+1);updateExerciseSummary(card)};
+  row.querySelector('.remove-row').onclick=()=>{row.remove();[...card.querySelectorAll('.set-row span')].forEach((x,i)=>x.textContent=i+1);syncAutoExerciseCompletion(card);updateExerciseSummary(card)};
   row.querySelector('.copy-row').onclick=()=>{
    const rows=[...card.querySelectorAll('.set-row')],idx=rows.indexOf(row),w=weightInput.value,r=row.querySelector('.reps-input').value;
    if(!w&&!r){toast('먼저 중량 또는 횟수를 입력하세요.');return}
@@ -118,12 +120,45 @@ function exerciseCard(name='',setsData=null){
   }));
   card.querySelector('.sets').append(row);
  };
- card.querySelector('.add-set').onclick=()=>add();
+ card.querySelector('.add-set').onclick=()=>{add();syncAutoExerciseCompletion(card);updateExerciseSummary(card)};
  (setsData&&setsData.length?setsData:[{},{},{}]).forEach(add);
  card.querySelector('.copy-all').onclick=()=>{const rows=[...card.querySelectorAll('.set-row')];if(!rows.length)return;const w=rows[0].querySelector('.weight-input').value,r=rows[0].querySelector('.reps-input').value,kg=rows[0].querySelector('.weight-input').dataset.weightKg;if(!w&&!r){toast('첫 세트의 중량 또는 횟수를 입력하세요.');return}rows.slice(1).forEach(x=>{x.querySelector('.weight-input').value=w;x.querySelector('.weight-input').dataset.weightKg=kg||'';x.querySelector('.reps-input').value=r});updateExerciseSummary(card);toast('첫 세트 값을 모든 세트에 적용했습니다.')};
- card.querySelector('.finish-exercise').onclick=()=>{card.classList.toggle('completed');card.querySelector('.finish-exercise').textContent=card.classList.contains('completed')?'완료 취소':'종목 완료';updateExerciseSummary(card,true)};
+ card.querySelector('.finish-exercise').onclick=()=>{card.dataset.autoCompleted='false';card.classList.toggle('completed');card.querySelector('.finish-exercise').textContent=card.classList.contains('completed')?'완료 취소':'종목 완료';updateExerciseSummary(card,true)};
  card.querySelector('.ex-name').addEventListener('input',()=>updateExerciseSummary(card));
+ card.querySelector('.ex-name').addEventListener('blur',async()=>{
+  const field=card.querySelector('.ex-name'),typed=field.value.trim();
+  if(!typed||card.dataset.previousLoaded==='true')return;
+  const currentRows=[...card.querySelectorAll('.set-row')];
+  if(currentRows.some(r=>r.querySelector('.weight-input').value!==''||r.querySelector('.reps-input').value!==''))return;
+  const logs=await get('logs'),normalized=typed.replace(/\\s+/g,' ').toLocaleLowerCase();
+  for(const log of logs){
+   const previous=(log.exercises||[]).find(item=>String(item.name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase()===normalized);
+   if(!previous)continue;
+   const from=previous.weightUnit||'kg',sets=(previous.sets||[]).map(set=>({...set,weight:set.weight==null?'':Math.round(weightConvert(set.weight,from,weightUnit)*10)/10,weightKg:set.weight==null?'':weightConvert(set.weight,from,'kg'),weightUnit,completed:false}));
+   card.querySelector('.sets').innerHTML='';
+   sets.forEach(add);
+   card.querySelector('.previous-workout-note').hidden=false;
+   card.querySelector('.previous-workout-note').textContent='직전 운동 기록 · '+dateText(log.date);
+   card.dataset.previousLoaded='true';
+   updateExerciseSummary(card);
+   toast(`${typed} 직전 기록을 불러왔습니다.`);
+   break;
+  }
+ });
  $('#exerciseList').append(card);updateExerciseSummary(card);
+}
+function syncAutoExerciseCompletion(card){
+ const rows=[...card.querySelectorAll('.set-row')];
+ const allDone=rows.length>0&&rows.every(row=>row.classList.contains('set-completed'));
+ if(allDone){
+  card.classList.add('completed');
+  card.dataset.autoCompleted='true';
+ }else if(card.dataset.autoCompleted==='true'){
+  card.classList.remove('completed');
+  card.dataset.autoCompleted='false';
+ }
+ const button=card.querySelector('.finish-exercise');
+ if(button)button.textContent=card.classList.contains('completed')?'완료 취소':'종목 완료';
 }
 function exerciseMetrics(card){
  const sets=[...card.querySelectorAll('.set-row')].map(r=>({weight:Number(r.querySelector('.weight-input').value)||0,reps:Number(r.querySelector('.reps-input').value)||0,completed:r.classList.contains('set-completed')})).filter(s=>s.reps>0);
@@ -138,6 +173,26 @@ function updateExerciseSummary(card,announce=false){
 }
 function newSession(){go('record');$('#sessionName').value='';$('#exerciseList').innerHTML='';exerciseCard()}
 
+async function addExerciseWithPrevious(name){
+ const logs=await get('logs');
+ const normalized=String(name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase();
+ let match=null;
+ for(const log of logs){
+  const exercise=(log.exercises||[]).find(item=>String(item.name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase()===normalized);
+  if(exercise){match={log,exercise};break}
+ }
+ if(!match){exerciseCard(name);toast(`${name} 추가 완료 · 이전 기록 없음`);return}
+ const from=match.exercise.weightUnit||'kg';
+ const sets=(match.exercise.sets||[]).map(set=>({
+  ...set,
+  weight:set.weight==null?'':Math.round(weightConvert(set.weight,from,weightUnit)*10)/10,
+  weightKg:set.weight==null?'':weightConvert(set.weight,from,'kg'),
+  weightUnit,
+  completed:false
+ }));
+ const card=exerciseCard(name,sets,match.log.date);card.dataset.previousLoaded='true';
+ toast(`${name} 추가 완료 · ${dateText(match.log.date)} 직전 기록 불러옴`);
+}
 $('#startWorkout').onclick=newSession;$('#addExercise').onclick=()=>exerciseCard();
 const CATS=['전체','가슴','등','어깨','이두','삼두','전완','하체','복근','유산소','전신','스트레칭','기타'];
 const LIB_DATA = String.raw`가슴|바벨 벤치프레스|대흉근 전체|삼두근, 전면 삼각근|바벨|벤치에 누워 바벨을 가슴 중앙까지 내린 뒤 수직으로 밀어 올립니다.
@@ -447,7 +502,7 @@ let exerciseVisibleCount=48;
 async function refreshCustom(){window.customExerciseCache=await get('customExercises');}
 function renderCategories(){const exercises=allExercises();const available=CATS.filter(c=>c==='전체'||exercises.some(x=>x.category===c));if(selectedCategory!=='전체'&&!available.includes(selectedCategory))selectedCategory='전체';$('#categoryChips').innerHTML=available.map(c=>`<button class="category-chip ${c===selectedCategory?'active':''}" data-cat="${c}">${c}</button>`).join('');document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;exerciseVisibleCount=48;renderCategories();renderLibrary()});}
 function renderLibrary(){const q=$('#exerciseSearch').value.trim().toLowerCase();const terms=q.split(/\s+/).filter(Boolean);const all=allExercises();const categoryResults=selectedCategory==='전체'?all:all.filter(x=>x.category===selectedCategory);const arr=categoryResults.filter(x=>!terms.length||terms.every(term=>[x.name,x.nameEn,x.primary,x.secondary,x.equipment,x.category].join(' ').toLowerCase().includes(term)));const visible=q?arr:arr.slice(0,exerciseVisibleCount);$('#libraryList').innerHTML=`<div class="exercise-result-count">${arr.length.toLocaleString('ko-KR')}개 운동 · ${visible.length.toLocaleString('ko-KR')}개 표시</div>`+(visible.length?visible.map(x=>`<button class="library-item ${selectedExercise?.id===x.id?'chosen':''}" data-ex="${x.id}"><span class="library-item-text"><b>${escapeHTML(x.name)}</b></span></button>`).join(''):'<p class="empty">검색 결과가 없습니다.</p>')+(visible.length<arr.length?`<button class="secondary wide load-more-exercises" data-more-exercises>더 많은 운동 보기 (${(arr.length-visible.length).toLocaleString('ko-KR')}개 남음)</button>`:'');document.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{selectedExercise=allExercises().find(x=>x.id===b.dataset.ex);renderLibrary();renderDetail()});const more=$('[data-more-exercises]');if(more)more.onclick=()=>{exerciseVisibleCount+=48;renderLibrary()};}
-function renderDetail(){const x=selectedExercise;if(!x){$('#exerciseDetail').innerHTML='<div class="detail-empty">운동을 선택하면 타겟 부위와 설명이 표시됩니다.</div>';return}const cues=[],mistakes=[];$('#exerciseDetail').innerHTML=`<h3>${escapeHTML(x.name)}</h3>${x.nameEn?`<p class="detail-meta">${escapeHTML(x.nameEn)}</p>`:''}<span class="target-pill">주 타겟 · ${escapeHTML(x.primary)}</span><p class="detail-meta">보조 근육 · ${escapeHTML(x.secondary)}</p><p class="detail-meta">운동 도구 · ${escapeHTML(x.equipment)}</p><p class="detail-desc">${escapeHTML(x.desc)}</p>${cues.length?`<div class="source-cues"><b>운동 동작 요령</b><ol>${cues.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ol></div>`:''}${mistakes.length?`<details class="source-mistakes"><summary>자주 하는 실수</summary><ul>${mistakes.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ul></details>`:''}<button class="primary wide" id="selectThisExercise">＋ 오늘 운동에 추가</button>`;$('#selectThisExercise').onclick=()=>{exerciseCard(x.name);toast(`${x.name} 추가 완료`)}}
+function renderDetail(){const x=selectedExercise;if(!x){$('#exerciseDetail').innerHTML='<div class="detail-empty">운동을 선택하면 타겟 부위와 설명이 표시됩니다.</div>';return}const cues=[],mistakes=[];$('#exerciseDetail').innerHTML=`<h3>${escapeHTML(x.name)}</h3>${x.nameEn?`<p class="detail-meta">${escapeHTML(x.nameEn)}</p>`:''}<span class="target-pill">주 타겟 · ${escapeHTML(x.primary)}</span><p class="detail-meta">보조 근육 · ${escapeHTML(x.secondary)}</p><p class="detail-meta">운동 도구 · ${escapeHTML(x.equipment)}</p><p class="detail-desc">${escapeHTML(x.desc)}</p>${cues.length?`<div class="source-cues"><b>운동 동작 요령</b><ol>${cues.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ol></div>`:''}${mistakes.length?`<details class="source-mistakes"><summary>자주 하는 실수</summary><ul>${mistakes.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ul></details>`:''}<button class="primary wide" id="selectThisExercise">＋ 오늘 운동에 추가</button>`;$('#selectThisExercise').onclick=async()=>{await addExerciseWithPrevious(x.name)}}
 $('#exerciseSearch').oninput=()=>{exerciseVisibleCount=48;renderLibrary()};
 $('#customExerciseBtn').onclick=async()=>{const name=prompt('추가할 운동 이름을 입력하세요.');if(!name||!name.trim())return;const category=prompt('운동 분류를 입력하세요: 가슴, 등, 어깨, 이두, 삼두, 전완, 하체, 복근, 유산소, 전신, 스트레칭, 기타','기타');if(!CATS.includes(category)||category==='전체'){toast('운동 분류를 정확히 입력해주세요.');return}const primary=prompt('주 타겟 부위 (예: 광배근)','직접 입력 운동 부위')||'직접 입력';const custom=await get('customExercises');custom.push({id:'custom'+crypto.randomUUID(),category,name:name.trim(),primary,secondary:'직접 지정',equipment:'직접 입력',desc:'사용자가 직접 등록한 운동입니다.',builtin:false});await put('customExercises',custom);await refreshCustom();selectedCategory=category;selectedExercise=allExercises().find(x=>x.name===name.trim()&&!x.builtin);renderCategories();renderLibrary();renderDetail();toast('나만의 운동을 추가했습니다.')};
 
