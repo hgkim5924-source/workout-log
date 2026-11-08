@@ -610,3 +610,12 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 /* v52: clear provenance label for prefilled previous exercise performance */
 .previous-workout-note{margin:0 0 10px;padding:8px 12px;border-left:3px solid #a8eb65;border-radius:5px;background:#202b22;color:#b8e986;font-size:12px;font-weight:700}
 .previous-workout-note[hidden]{display:none}
+
+/* v53: InBody-style normalized muscle-fat analysis */
+.cid-inbody-track{background:linear-gradient(to right,#35413b 0%,#35413b 100%);border-color:#748078;height:15px}
+.cid-inbody-track .cid-normal-band{background:#176b9b;border-left:2px solid #8bdcff;border-right:2px solid #8bdcff}
+.cid-inbody-track .cid-value-marker{width:4px;height:23px;top:-5px}
+.cid-gauge-zones{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;color:#aebbb3;font-size:9px;font-weight:700}
+.cid-gauge-zones span:nth-child(1){text-align:left}
+.cid-gauge-zones span:nth-child(2){text-align:center;color:#8bdcff}
+.cid-gauge-zones span:nth-child(3){text-align:right}
