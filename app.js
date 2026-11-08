@@ -618,27 +618,29 @@ function cidShape(entry,ref){
  if(ratios.muscle>ratios.weight&&ratios.muscle>ratios.fat)return 'D형 패턴 · 근육 발달형';
  return '혼합형 · 세부 지표 확인';
 }
-function cidShapeSvg(entry,ref){
- const r=cidRatios(entry,ref);
- if(!r)return '<div class="analysis-empty">체중·골격근량·체지방량을 입력하면 CID 형태를 자동 계산합니다.</div>';
- const x0=86,w=256,ys={weight:24,muscle:62,fat:100};
- const x=k=>x0+Math.max(0,Math.min(200,r[k]))/200*w;
- const rows=[['weight','체중',ref.weight],['muscle','골격근량',ref.muscle],['fat','체지방량',ref.fat]];
- const backgrounds=rows.map(([k,label,range])=>{
-  const y=ys[k];
-  const a=range.min/range.standard*100;
-  const b=range.max/range.standard*100;
-  return '<text x="0" y="'+(y+4)+'" fill="currentColor" font-size="10">'+label+'</text><line x1="'+x0+'" y1="'+y+'" x2="'+(x0+w)+'" y2="'+y+'" stroke="currentColor" opacity=".18" stroke-width="7" stroke-linecap="round"/><rect x="'+(x0+a/200*w)+'" y="'+(y-5)+'" width="'+((b-a)/200*w)+'" height="10" rx="4" fill="#A3E635" opacity=".24"/><line x1="'+x0+'" y1="'+y+'" x2="'+x(k)+'" y2="'+y+'" stroke="#A3E635" stroke-width="5" stroke-linecap="round"/>';
- }).join('');
- const connector='<polyline points="'+['weight','muscle','fat'].map(k=>x(k)+','+ys[k]).join(' ')+'" fill="none" stroke="#A3E635" stroke-width="2" stroke-linejoin="round" opacity=".95"/>';
- const dots=['weight','muscle','fat'].map(k=>'<circle cx="'+x(k)+'" cy="'+ys[k]+'" r="4.5" fill="#A3E635"><title>'+k+' '+r[k].toFixed(1)+'% of standard</title></circle>').join('');
- return '<svg class="cid-shape-svg" viewBox="0 0 360 130" role="img" aria-label="CID 체중 골격근량 체지방량 표준 대비 막대"><g>'+backgrounds+'</g>'+connector+dots+'<g fill="currentColor" opacity=".65" font-size="9"><text x="'+x0+'" y="124" text-anchor="middle">0%</text><text x="'+(x0+w/2)+'" y="124" text-anchor="middle">100%</text><text x="'+(x0+w)+'" y="124" text-anchor="middle">200%</text></g></svg>';
+function cidGaugeRow(label,value,unit,rangeMin,rangeMax,statusText){
+ const n=Number(value),low=Number(rangeMin),high=Number(rangeMax);
+ if(!Number.isFinite(n)||!Number.isFinite(low)||!Number.isFinite(high)||high<=low){
+  return '<article class="cid-gauge-row"><div class="cid-gauge-head"><strong>'+label+'</strong><span>측정값 확인 필요</span></div></article>';
+ }
+ const rawMax=Math.max(high*1.35,n*1.15,high+1);
+ const step=rawMax<=20?2:rawMax<=50?5:rawMax<=100?10:20;
+ const axisMax=Math.ceil(rawMax/step)*step;
+ const clamp=v=>Math.max(0,Math.min(100,v/axisMax*100));
+ const bandLeft=clamp(low),bandRight=clamp(high),marker=clamp(n);
+ const format=v=>Number(v).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1});
+ const tone=['표준','정상'].includes(statusText)?'normal':/(낮음|이하|저체중)/.test(statusText)?'low':'high';
+ const ticks=[0,.25,.5,.75,1].map(p=>'<span>'+format(axisMax*p)+'</span>').join('');
+ return '<article class="cid-gauge-row">'+
+  '<div class="cid-gauge-head"><div class="cid-gauge-name"><strong>'+label+'</strong><small>정상 범위 '+format(low)+'–'+format(high)+' '+unit+'</small></div>'+
+  '<div class="cid-gauge-result"><b>'+format(n)+' '+unit+'</b><span class="cid-status '+tone+'">'+statusText+'</span></div></div>'+
+  '<div class="cid-gauge-track" role="img" aria-label="'+label+' '+format(n)+' '+unit+', 정상 범위 '+format(low)+'에서 '+format(high)+' '+unit+'">'+
+   '<span class="cid-normal-band" style="left:'+bandLeft+'%;width:'+Math.max(0,bandRight-bandLeft)+'%"></span>'+
+   '<span class="cid-value-marker" style="left:'+marker+'%"></span></div>'+
+  '<div class="cid-gauge-axis">'+ticks+'</div>'+
+ '</article>';
 }
-function cidBarRow(label,value,range){
- if(!range)return '<div class="cid-row"><div class="cid-row-head"><b>'+label+'</b><strong>분석 기준 없음</strong></div></div>';
- const status=cidStatus(value,range),color=status==='표준'?'#A3E635':status==='표준 이상'?'#38BDF8':'#F59E0B';
- return '<div class="cid-row"><div class="cid-row-head"><b>'+label+'</b><strong>'+Number(value).toFixed(1)+'kg · '+status+'</strong></div><div class="cid-row-foot"><span>표준 '+range.min.toFixed(1)+'~'+range.max.toFixed(1)+'kg</span><span>100% 기준 '+range.standard.toFixed(1)+'kg</span></div></div>';
-}
+
 function ageBand(age){
  if(!Number.isFinite(age)||age<18||age>80)return null;
  if(age<20)return '10-19';
@@ -723,10 +725,19 @@ async function renderAnalysis(){
   }else if(!hasBase){
    cidHtml='<div class="analysis-empty">CID 계산에는 체중·골격근량·체지방량 세 값이 모두 필요합니다.</div>';
   }else{
+   const composition=bodyMetrics(selected.height,selected.weight,selected.fat,selected.sex);
+   const pbfRange=selected.sex==='male'?[10,20]:[18,28];
+   const bmiRange=[18.5,23];
    cidHtml='<div class="cid-meta"><b>'+dateText(selected.date)+'</b><span>'+(selected.sex==='male'?'남성':'여성')+' · '+age+' · '+Number(selected.height).toFixed(1)+'cm</span></div>'+
-   '<div class="cid-shape"><strong>'+cidShape(selected,ref)+'</strong><small>각 항목의 인바디 기준 대비 비율 · 막대 끝점 연결</small>'+cidShapeSvg(selected,ref)+'</div>'+
-   cidBarRow('체중',Number(selected.weight),ref.weight)+cidBarRow('골격근량',Number(selected.muscle),ref.muscle)+cidBarRow('체지방량',Number(selected.fat),ref.fat)+
-   '<p class="hint">자동 기준: 표준체중은 남성 BMI 22 / 여성 BMI 21, 표준 체지방량은 남성 15% / 여성 23% 기준으로 계산합니다. 골격근량 기준은 표준 제지방량에 건강한 성인의 전신 골격근/제지방 비율 연구값(남성 52.8%, 여성 47.3%)을 적용한 앱 자체 추정치입니다. SMM의 제조사 공식 산식이 공개된 것은 아니므로 실제 인바디 장비의 CID 결과와 완전히 같지는 않을 수 있습니다. 항목별 정상 범위는 체중 85~115%, SMM 90~110%, 체지방량 80~160%를 적용합니다.</p>';
+   '<div class="cid-shape cid-shape-summary"><span class="cid-shape-kicker">CID BODY TYPE</span><strong>'+cidShape(selected,ref)+'</strong><small>실제 측정값을 항목별 정상 범위와 비교한 참고 결과입니다.</small></div>'+
+   '<section class="cid-analysis-section"><div class="cid-analysis-title"><b>근육·지방 분석</b><span>MUSCLE-FAT ANALYSIS</span></div>'+
+   cidGaugeRow('체중',Number(selected.weight),'kg',ref.weight.min,ref.weight.max,cidStatus(Number(selected.weight),ref.weight))+
+   cidGaugeRow('골격근량',Number(selected.muscle),'kg',ref.muscle.min,ref.muscle.max,cidStatus(Number(selected.muscle),ref.muscle))+
+   cidGaugeRow('체지방량',Number(selected.fat),'kg',ref.fat.min,ref.fat.max,cidStatus(Number(selected.fat),ref.fat))+'</section>'+
+   '<section class="cid-analysis-section obesity"><div class="cid-analysis-title"><b>비만 분석</b><span>OBESITY ANALYSIS</span></div>'+
+   cidGaugeRow('BMI',composition.bmi,'kg/m²',bmiRange[0],bmiRange[1],composition.bmiStatus||'측정값 없음')+
+   cidGaugeRow('체지방률',composition.bodyFatPercent,'%',pbfRange[0],pbfRange[1],composition.bodyFatStatus||'측정값 없음')+'</section>'+
+   '<p class="hint cid-method-note">정상 구간은 각 항목의 기준을 실제 단위(kg, kg/m², 체지방률)로 환산해 표시합니다. 파란색 구간이 정상 범위이며 주황색 선이 현재 측정값입니다. 골격근량 기준은 표준 제지방량과 MRI 연구의 근육/제지방 비율을 이용한 앱 자체 추정치로, InBody 제조사의 공식 산식과 동일하지 않습니다. 따라서 CID 분류는 참고용 패턴 분석이며 실제 InBody 결과와 다를 수 있습니다.</p>';
   }
  }
  const selectHtml=all.length?'<label class="field-label" for="cidRecordSelect">분석할 측정 기록</label><select id="cidRecordSelect" class="input">'+all.slice().reverse().map(x=>'<option value="'+escapeHTML(x.id)+'" '+(selected&&selected.id===x.id?'selected':'')+'>'+dateText(x.date)+' · '+(x.sex==='male'?'남성':x.sex==='female'?'여성':'성별 미입력')+' · 만 '+(x.age??'미입력')+'세</option>').join('')+'</select>':'';
