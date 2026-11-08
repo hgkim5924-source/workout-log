@@ -35,14 +35,22 @@ function applyWeightUnit(next){
 }
 function exerciseCard(name='',setsData=null){
  const card=document.createElement('div');card.className='exercise-card';
- card.innerHTML=`<div class="exercise-top"><input class="input ex-name" placeholder="운동 종목 (예: 랫풀다운)" value="${escapeHTML(name)}"><button class="remove">삭제</button></div><div class="set-head"><span>세트</span><span>중량 (${weightUnit})</span><span>횟수</span><span>복사</span><span></span></div><div class="sets"></div><div class="exercise-tools"><button class="copy-all">첫 세트 값 전체 적용</button><button class="finish-exercise">종목 완료</button></div><div class="exercise-summary"></div><button class="add-set">＋ 세트 추가</button>`;
+ card.innerHTML=`<div class="exercise-top"><input class="input ex-name" placeholder="운동 종목 (예: 랫풀다운)" value="${escapeHTML(name)}"><button class="remove">삭제</button></div><div class="set-head"><span>세트</span><span>중량 (${weightUnit})</span><span>횟수</span><span>복사</span><span>완료</span><span></span></div><div class="sets"></div><div class="exercise-tools"><button class="copy-all">첫 세트 값 전체 적용</button><button class="finish-exercise">종목 완료</button></div><div class="exercise-summary"></div><button class="add-set">＋ 세트 추가</button>`;
  card.querySelector('.remove').onclick=()=>card.remove();
  const add=(data={})=>{
   const n=card.querySelectorAll('.set-row').length+1,row=document.createElement('div');
   const initialWeight=data.weight??'';
   const initialKg=initialWeight===''?'':(data.weightKg??weightConvert(initialWeight,data.weightUnit||weightUnit,'kg'));
   row.className='set-row';
-  row.innerHTML=`<span>${n}</span><input type="number" min="0" step="0.5" placeholder="0" value="${initialWeight}" aria-label="${n}세트 중량"><input type="number" min="0" step="1" placeholder="0" value="${data.reps??''}" aria-label="${n}세트 횟수"><button class="copy-row" aria-label="이 세트 값을 이후 세트에 복사" title="이 세트 값을 이후 세트에 복사">↓</button><button class="remove-row" aria-label="세트 삭제">×</button>`;
+  row.innerHTML=`<span>${n}</span><input type="number" min="0" step="0.5" placeholder="0" value="${initialWeight}" aria-label="${n}세트 중량"><input type="number" min="0" step="1" placeholder="0" value="${data.reps??''}" aria-label="${n}세트 횟수"><button class="copy-row" aria-label="이 세트 값을 이후 세트에 복사" title="이 세트 값을 이후 세트에 복사">↓</button><button class="complete-set" type="button" aria-label="${n}세트 완료 표시" aria-pressed="${data.completed===true}">${data.completed===true?'✓':'○'}</button><button class="remove-row" aria-label="세트 삭제">×</button>`;
+  const completeButton=row.querySelector('.complete-set');
+  if(data.completed===true)row.classList.add('set-completed');
+  completeButton.onclick=()=>{
+   const done=row.classList.toggle('set-completed');
+   completeButton.textContent=done?'✓':'○';
+   completeButton.setAttribute('aria-pressed',String(done));
+   completeButton.setAttribute('aria-label',`${n}세트 ${done?'완료':'미완료'} 표시`);
+  };
   const weightInput=row.children[1];
   if(initialWeight!=='')weightInput.dataset.weightKg=String(initialKg);
   row.querySelector('.remove-row').onclick=()=>{row.remove();[...card.querySelectorAll('.set-row span')].forEach((x,i)=>x.textContent=i+1);updateExerciseSummary(card)};
@@ -66,7 +74,7 @@ function exerciseCard(name='',setsData=null){
  $('#exerciseList').append(card);updateExerciseSummary(card);
 }
 function exerciseMetrics(card){
- const sets=[...card.querySelectorAll('.set-row')].map(r=>({weight:Number(r.children[1].value)||0,reps:Number(r.children[2].value)||0})).filter(s=>s.reps>0);
+ const sets=[...card.querySelectorAll('.set-row')].map(r=>({weight:Number(r.children[1].value)||0,reps:Number(r.children[2].value)||0,completed:r.classList.contains('set-completed')})).filter(s=>s.reps>0);
  const reps=sets.reduce((n,s)=>n+s.reps,0),volume=sets.reduce((n,s)=>n+s.weight*s.reps,0);
  const oneRM=sets.reduce((m,s)=>s.weight>0?Math.max(m,s.weight*(1+s.reps/30)):m,0);
  return {sets,reps,volume,oneRM};
@@ -413,7 +421,7 @@ async function renderHistory(){
   const sets=(e.sets||[]).map(s=>({...s,weight:Math.round(weightConvert(s.weight,from,weightUnit)*10)/10}));
   const volume=weightConvert(e.totalVolume??(e.sets||[]).reduce((n,s)=>n+s.weight*s.reps,0),from,weightUnit);
   const oneRM=weightConvert(e.estimated1RM??Math.max(0,...(e.sets||[]).map(s=>s.weight*(1+s.reps/30))),from,weightUnit);
-  return `<p><b>${escapeHTML(e.name)}</b> · ${sets.map(s=>`${s.weight}${weightUnit} × ${s.reps}`).join(' / ')}<br><span class="muted">볼륨 ${Number(volume).toLocaleString('ko-KR',{maximumFractionDigits:1})}${weightUnit} · ${Number(e.totalReps??(e.sets||[]).reduce((n,s)=>n+s.reps,0))}회 · 추정 1RM ${Number(oneRM).toFixed(1)}${weightUnit}</span></p>`;
+  return `<p><b>${escapeHTML(e.name)}</b> · ${sets.map(s=>`${s.completed?"✓ ":""}${s.weight}${weightUnit} × ${s.reps}`).join(' / ')}<br><span class="muted">볼륨 ${Number(volume).toLocaleString('ko-KR',{maximumFractionDigits:1})}${weightUnit} · ${Number(e.totalReps??(e.sets||[]).reduce((n,s)=>n+s.reps,0))}회 · 추정 1RM ${Number(oneRM).toFixed(1)}${weightUnit}</span></p>`;
  }).join('')}</article>`).join(''):'저장된 운동이 없습니다.';
  document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{if(confirm('이 운동 기록을 삭제할까요?')){await put('logs',(await get('logs')).filter(x=>x.id!==b.dataset.delete));renderHistory()}});
 }
