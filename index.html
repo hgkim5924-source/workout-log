@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="WORKOUT LOG">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=45">
+  <link rel="stylesheet" href="./style.css?v=46">
   <title>WORKOUT LOG</title>
 </head>
 <body>
@@ -62,19 +62,28 @@
         <label class="field-label" for="bodyDate">측정 날짜</label><input id="bodyDate" type="date" class="input">
         <div class="two-col">
           <div><label class="field-label" for="age">나이 (만)</label><input id="age" type="number" min="1" max="120" step="1" class="input" placeholder="27"></div>
-          <div><label class="field-label" for="height">키 (cm)</label><input id="height" type="number" min="1" step="0.1" class="input" placeholder="176.0"></div>
+          <div><label class="field-label" for="sex">성별 (체성분 기준)</label><select id="sex" class="input"><option value="">선택</option><option value="male">남성</option><option value="female">여성</option></select></div>
         </div>
+        <label class="field-label" for="height">키 (cm)</label><input id="height" type="number" min="1" step="0.1" class="input" placeholder="176.0">
         <label class="field-label" for="weight">체중 (kg)</label><input id="weight" type="number" min="0.1" step="0.1" class="input" placeholder="68.0">
         <div class="two-col">
           <div><label class="field-label" for="muscle">골격근량 (kg)</label><input id="muscle" type="number" min="0" step="0.1" class="input" placeholder="33.0"></div>
           <div><label class="field-label" for="fat">체지방량 (kg)</label><input id="fat" type="number" min="0" step="0.1" class="input" placeholder="10.0"></div>
+        </div>
+        <div class="cid-standard-entry">
+          <strong>CID 골격근량 기준 범위 (선택)</strong>
+          <p class="hint">인바디 결과지의 골격근량(SMM) 정상범위 하한과 상한을 입력하세요. 예: 20.3~24.9kg. 이 범위를 이용해 개인의 SMM 100% 기준값과 90~110% 판정을 계산합니다.</p>
+          <div class="two-col">
+            <div><label class="field-label" for="smmMin">SMM 표준 하한 (kg)</label><input id="smmMin" type="number" min="0" step="0.1" class="input" placeholder="20.3"></div>
+            <div><label class="field-label" for="smmMax">SMM 표준 상한 (kg)</label><input id="smmMax" type="number" min="0" step="0.1" class="input" placeholder="24.9"></div>
+          </div>
         </div>
         <div class="body-calculated">
           <div class="body-calculated-item"><span>자동 계산 체지방률</span><strong id="bodyFatPreview">—</strong></div>
           <div class="body-calculated-item"><span>자동 계산 BMI</span><strong id="bmiPreview">—</strong></div>
         </div>
         <p class="hint body-calc-hint">체지방률은 체지방량 ÷ 체중 × 100, BMI는 체중 ÷ 키(m)²로 계산됩니다.</p>
-        <p class="hint body-calc-hint">분류 참고: 체지방률은 성인 남성 참고 구간(낮음 &lt;8%, 정상 8~19.9%, 높은 편 20~24.9%, 비만 범위 25% 이상)이며, BMI는 한국 성인 기준입니다. 체지방률은 측정 기기와 방식에 따라 차이가 있어 참고용으로 확인하세요.</p>
+        <p class="hint body-calc-hint">체지방률 참고 범위(InBody 970): 남성 정상 10~20%, 여성 정상 18~28%. 성별에 따라 자동 분류하며 기종·측정 조건에 따른 차이가 있어 참고용입니다. BMI는 한국 성인 기준입니다.</p>
         <div class="body-form-actions">
           <button class="primary wide" id="saveBody">측정 기록 저장</button>
           <button class="secondary wide" id="cancelBodyEdit" type="button" hidden>수정 취소</button>
@@ -108,6 +117,6 @@
   </nav>
   <input id="backupInput" type="file" accept="application/json" hidden>
   <div id="toast" role="status" class="toast"></div>
-  <script src="./app.js?v=56"></script>
+  <script src="./app.js?v=57"></script>
 </body>
 </html>
