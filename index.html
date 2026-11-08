@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="WORKOUT LOG">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=41">
+  <link rel="stylesheet" href="./style.css?v=42">
   <title>WORKOUT LOG</title>
 </head>
 <body>
@@ -45,6 +45,7 @@
         <button class="secondary wide" id="customExerciseBtn">＋ 목록에 없는 운동 직접 추가</button>
       </div>
       <div class="section-head compact"><h3>오늘 기록할 운동</h3><button class="text-btn" id="addExercise">직접 이름 입력</button></div>
+      <div class="record-unit-bar"><label for="recordWeightUnit">세트 중량 단위</label><select id="recordWeightUnit" class="input unit-select" aria-label="운동 기록 중량 단위"><option value="kg">kg</option><option value="lbs">lbs</option></select></div>
       <div id="exerciseList" class="stack"></div>
       <button class="primary wide" id="saveWorkout">오늘 운동 저장하기</button>
       <p class="hint">입력한 기록은 이 아이폰의 브라우저에 저장됩니다.</p>
@@ -94,6 +95,6 @@
   </nav>
   <input id="backupInput" type="file" accept="application/json" hidden>
   <div id="toast" role="status" class="toast"></div>
-  <script src="./app.js?v=49"></script>
+  <script src="./app.js?v=50"></script>
 </body>
 </html>
