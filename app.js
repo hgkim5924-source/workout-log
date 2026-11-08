@@ -543,12 +543,16 @@ async function renderBody(){
  const latestHeightEntry=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).find(x=>Number(x.height)>0);
  const latestHeight=latestHeightEntry?Number(latestHeightEntry.height):null;
  if(editingBodyIndex===null&&!$('#height').value&&latestHeight)$('#height').value=latestHeight;
- const latestProfile=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).find(x=>x.age!=null||x.sex||x.height||x.smmMin||x.smmMax);
- if(editingBodyIndex===null&&latestProfile){
-  if(!$('#age').value&&latestProfile.age!=null)$('#age').value=latestProfile.age;
-  if(!$('#sex').value&&latestProfile.sex)$('#sex').value=latestProfile.sex;
-  if(!$('#smmMin').value&&latestProfile.smmMin!=null)$('#smmMin').value=latestProfile.smmMin;
-  if(!$('#smmMax').value&&latestProfile.smmMax!=null)$('#smmMax').value=latestProfile.smmMax;
+ const newest=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ const latestAge=newest.find(x=>x.age!==null&&x.age!==undefined);
+ const latestSex=newest.find(x=>x.sex==='male'||x.sex==='female');
+ const latestSmmMin=newest.find(x=>Number(x.smmMin)>0);
+ const latestSmmMax=newest.find(x=>Number(x.smmMax)>0);
+ if(editingBodyIndex===null){
+  if(!$('#age').value&&latestAge)$('#age').value=latestAge.age;
+  if(!$('#sex').value&&latestSex)$('#sex').value=latestSex.sex;
+  if(!$('#smmMin').value&&latestSmmMin)$('#smmMin').value=latestSmmMin.smmMin;
+  if(!$('#smmMax').value&&latestSmmMax)$('#smmMax').value=latestSmmMax.smmMax;
  }
  updateBodyCalculations();
  $('#bodyList').className='stack'+(arr.length?'':' empty');
@@ -597,7 +601,7 @@ function cidStatus(value,range){
  return value<range.min?'표준 이하':value>range.max?'표준 이상':'표준';
 }
 function cidRatios(entry,ref){
- if(!ref||!ref.muscle)return null;
+ if(!ref||!ref.muscle||entry.weight==null||entry.muscle==null||entry.fat==null)return null;
  return {
   weight:entry.weight/ref.weight.standard*100,
   muscle:entry.muscle/ref.muscle.standard*100,
@@ -621,8 +625,8 @@ function cidShapeSvg(entry,ref){
  const rows=[['weight','체중',ref.weight],['muscle','골격근량',ref.muscle],['fat','체지방량',ref.fat]];
  const backgrounds=rows.map(([k,label,range])=>{
   const y=ys[k],min=x0+range.min/r[k.replace('weight','weight').replace('muscle','muscle').replace('fat','fat')].standard*0;
-  const a=range.min/r[k==='weight'?'weight':k==='muscle'?'muscle':'fat'].standard*100;
-  const b=range.max/r[k==='weight'?'weight':k==='muscle'?'muscle':'fat'].standard*100;
+  const a=range.min/range.standard*100;
+  const b=range.max/range.standard*100;
   return '<text x="0" y="'+(y+4)+'" fill="currentColor" font-size="10">'+label+'</text><line x1="'+x0+'" y1="'+y+'" x2="'+(x0+w)+'" y2="'+y+'" stroke="currentColor" opacity=".18" stroke-width="7" stroke-linecap="round"/><rect x="'+(x0+a/200*w)+'" y="'+(y-5)+'" width="'+((b-a)/200*w)+'" height="10" rx="4" fill="#A3E635" opacity=".24"/><line x1="'+x0+'" y1="'+y+'" x2="'+x(k)+'" y2="'+y+'" stroke="#A3E635" stroke-width="5" stroke-linecap="round"/>';
  }).join('');
  const connector='<polyline points="'+['weight','muscle','fat'].map(k=>x(k)+','+ys[k]).join(' ')+'" fill="none" stroke="#A3E635" stroke-width="2" stroke-linejoin="round" opacity=".95"/>';
@@ -659,7 +663,7 @@ function percentileRank(value,knots){
 }
 function koreanCompositionReference(entry){
  const age=Number(entry.age),h=Number(entry.height),weight=Number(entry.weight),fat=Number(entry.fat),band=ageBand(age);
- if(!band||!['male','female'].includes(entry.sex)||!Number.isFinite(h)||h<=0||!Number.isFinite(weight)||!Number.isFinite(fat)||fat<0||fat>=weight)return null;
+ if(!band||!['male','female'].includes(entry.sex)||!Number.isFinite(h)||h<=0||entry.weight==null||entry.fat==null||!Number.isFinite(weight)||!Number.isFinite(fat)||weight<=0||fat<0||fat>=weight)return null;
  const h2=(h/100)**2,ffmi=(weight-fat)/h2,fmi=fat/h2,reference=KOREAN_BODY_REFERENCE[entry.sex];
  return {band,ffmi,fmi,ffmiRank:percentileRank(ffmi,reference.ffmi[band]),fmiRank:percentileRank(fmi,reference.fmi[band]),ffmiKnots:reference.ffmi[band],fmiKnots:reference.fmi[band]};
 }
@@ -687,9 +691,11 @@ async function renderAnalysis(){
  let cidHtml='<div class="analysis-empty">신체 기록이 없습니다. 신체 탭에서 측정값을 입력하세요.</div>';
  if(selected){
   const ref=cidReference(selected),age=selected.age==null?'나이 미입력':'만 '+selected.age+'세';
-  const hasBase=!!ref&&Number.isFinite(Number(selected.weight))&&Number.isFinite(Number(selected.muscle))&&Number.isFinite(Number(selected.fat));
+  const hasBase=!!ref&&selected.weight!=null&&selected.muscle!=null&&selected.fat!=null&&Number.isFinite(Number(selected.weight))&&Number(selected.weight)>0&&Number.isFinite(Number(selected.muscle))&&Number(selected.muscle)>0&&Number.isFinite(Number(selected.fat))&&Number(selected.fat)>=0;
   if(!ref){
    cidHtml='<div class="analysis-empty">CID 계산에는 성별과 신장이 필요합니다. 신체 탭에서 해당 기록을 수정해 입력하세요.</div>';
+  }else if(selected.age===null||selected.age===undefined||!Number.isFinite(Number(selected.age))){
+   cidHtml='<div class="analysis-empty">CID 성인 기준을 적용하려면 측정 당시 만 나이를 입력하세요.</div>';
   }else if(Number(selected.age)<18){
    cidHtml='<div class="analysis-empty">성인 CID 표준은 만 18세 이상에만 적용합니다. 미성년자는 연령·성별·신장별 성장 기준이 필요합니다.</div>';
   }else if(!hasBase){
