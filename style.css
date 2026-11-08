@@ -495,3 +495,9 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .library-item .mini-anatomy,.library-item img,.library-item svg,.library-item small{display:none!important}
 .library-item-text{display:block;min-width:0;width:100%}
 .library-item-text b{display:block;font-size:13px;line-height:1.45;font-weight:600}
+
+
+/* v42: inline kg/lbs selector on the workout recording screen */
+.record-unit-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:11px 13px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.record-unit-bar label{font-size:12px;color:var(--muted);font-weight:700}
+.record-unit-bar .unit-select{width:104px;padding:9px 12px;font-weight:800;color:var(--accent)}
