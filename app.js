@@ -622,7 +622,7 @@ function cidRatios(entry,ref){
 }
 function cidShape(entry,ref){
  const ratios=cidRatios(entry,ref);
- if(!ratios)return 'SMM 표준 범위 입력 필요';
+ if(!ratios)return 'SMM·BFM 표준 범위 입력 필요';
  const allNormal=[cidStatus(entry.weight,ref.weight),cidStatus(entry.muscle,ref.muscle),cidStatus(entry.fat,ref.fat)].every(s=>s==='표준');
  if(allNormal)return 'I형 · 균형형';
  if(ratios.muscle<ratios.weight&&ratios.muscle<ratios.fat)return 'C형 패턴 · 근육 부족형';
@@ -685,7 +685,7 @@ function koreanReferenceHtml(entry){
  return '<div class="ref-meta">한국인 '+(entry.sex==='male'?'남성':'여성')+' · '+r.band+'세 참고집단</div>'+
  '<div class="ref-grid"><article class="ref-card"><b>FFMI · 제지방량 지수</b><strong>'+r.ffmi.toFixed(1)+' kg/m²</strong><span>'+r.ffmiRank.label+'</span><small>P5 '+r.ffmiKnots[0]+' · P50 '+r.ffmiKnots[3]+' · P95 '+r.ffmiKnots[6]+'</small></article>'+
  '<article class="ref-card"><b>FMI · 체지방량 지수</b><strong>'+r.fmi.toFixed(1)+' kg/m²</strong><span>'+r.fmiRank.label+'</span><small>P5 '+r.fmiKnots[0]+' · P50 '+r.fmiKnots[3]+' · P95 '+r.fmiKnots[6]+'</small></article></div>'+
- '<p class="hint">2022~2023년 국민건강영양조사 자료를 사용한 한국인 10,140명(InBody970 BIA) 기준의 연령·성별 백분위 분포입니다. P5~P95는 연구 참여자의 분포 범위이지 질병 진단이나 의학적 정상 판정이 아닙니다. FFMI는 전체 제지방량 지수이며 골격근량 지수(SMI)가 아닙니다.</p>';
+ '<p class="hint">2022~2023년 국민건강영양조사 자료를 사용한 한국인 10,140명(InBody970 BIA) 기준의 연령·성별 백분위 분포입니다. P5~P95는 연구 참여자의 분포 범위이지 질병 진단이나 의학적 정상 판정이 아닙니다. FFMI=(체중−체지방량)/키², FMI=체지방량/키²입니다. FFMI는 전체 제지방량 지수이며 골격근량 지수(SMI)가 아닙니다.</p>';
 }
 async function renderAnalysis(){
  const all=(await get('body')).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
