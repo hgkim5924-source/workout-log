@@ -426,7 +426,7 @@ function bodyNumber(id){
 function bodyMetrics(height,weight,fat){
  const h=Number(height),w=Number(weight),f=Number(fat);
  return {
-  bodyFatPercent:Number.isFinite(w)&&w>0&&Number.isFinite(f)&&f>=0?f/w*100:null,
+  bodyFatPercent:fat!==null&&fat!==undefined&&fat!==''&&Number.isFinite(w)&&w>0&&Number.isFinite(f)&&f>=0?f/w*100:null,
   bmi:Number.isFinite(h)&&h>0&&Number.isFinite(w)&&w>0?w/((h/100)*(h/100)):null
  };
 }
