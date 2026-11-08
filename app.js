@@ -9,7 +9,7 @@ function get(key){return new Promise((res,rej)=>{const r=db.transaction(STORE).o
 function put(key,value){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(value,key);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2100)}
 function dateText(d){return new Date(d+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'})}
-function go(tab){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===tab));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));window.scrollTo(0,0);if(tab==='home')renderHome();if(tab==='history')renderHistory();if(tab==='bodydata')renderBody()}
+function go(tab){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===tab));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));window.scrollTo(0,0);if(tab==='home')renderHome();if(tab==='history')renderHistory();if(tab==='bodydata')renderBody();if(tab==='analysis')renderAnalysis()}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>go(b.dataset.tab));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 $('#todayLabel').textContent=dateText(today());$('#bodyDate').value=today();
@@ -457,7 +457,7 @@ function updateBodyCalculations(){
  $('#bodyFatPreview').textContent=metrics.bodyFatPercent===null?'—':metrics.bodyFatPercent.toFixed(1)+'% ('+metrics.bodyFatStatus+')';
  $('#bmiPreview').textContent=metrics.bmi===null?'—':metrics.bmi.toFixed(1)+' ('+metrics.bmiStatus+')';
 }
-['height','weight','muscle','fat'].forEach(id=>$('#'+id).addEventListener('input',updateBodyCalculations));
+['age','height','weight','muscle','fat'].forEach(id=>$('#'+id).addEventListener('input',updateBodyCalculations));
 
 let editingBodyIndex=null;
 function resetBodyEditor(){
@@ -474,6 +474,7 @@ async function beginBodyEdit(index){
  if(!entry){toast('선택한 신체 기록을 찾을 수 없습니다.');return}
  editingBodyIndex=index;
  $('#bodyDate').value=entry.date||today();
+ $('#age').value=entry.age??'';
  $('#height').value=entry.height??'';
  $('#weight').value=entry.weight??'';
  $('#muscle').value=entry.muscle??'';
@@ -501,6 +502,7 @@ $('#saveBody').onclick=async()=>{
  const height=enteredHeight??(editingEntry?(Number(editingEntry.height)>0?Number(editingEntry.height):null):latestHeight);
  const entry={
   ...(editingEntry||{}),
+  age:bodyNumber('age'),
   id:editingEntry?.id||crypto.randomUUID(),
   date:$('#bodyDate').value||today(),
   height,
@@ -528,13 +530,15 @@ async function renderBody(){
  const latestHeightEntry=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).find(x=>Number(x.height)>0);
  const latestHeight=latestHeightEntry?Number(latestHeightEntry.height):null;
  if(editingBodyIndex===null&&!$('#height').value&&latestHeight)$('#height').value=latestHeight;
+ const latestAgeEntry=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).find(x=>Number.isFinite(Number(x.age)));
+ if(editingBodyIndex===null&&!$('#age').value&&latestAgeEntry)$('#age').value=latestAgeEntry.age;
  updateBodyCalculations();
  $('#bodyList').className='stack'+(arr.length?'':' empty');
  $('#bodyList').innerHTML=arr.length?arr.map((x,index)=>({x,index})).sort((a,b)=>(b.x.date||'').localeCompare(a.x.date||'')).map(({x,index})=>{
   const height=Number(x.height)>0?Number(x.height):latestHeight;
   const metrics=bodyMetrics(height,x.weight,x.fat);
   const fmt=value=>value===null||value===undefined||!Number.isFinite(Number(value))?'-':Number(value).toLocaleString('ko-KR',{maximumFractionDigits:1});
-  return `<article class="item-card body-record-card"><div class="body-record-head"><h4>${dateText(x.date)}</h4><div class="body-record-actions"><button type="button" class="body-edit-btn" data-body-edit="${index}">수정</button><button type="button" class="body-delete-btn" data-body-delete="${index}">삭제</button></div></div><p>키 ${fmt(height)}cm · 체중 ${fmt(x.weight)}kg · 골격근량 ${fmt(x.muscle)}kg · 체지방량 ${fmt(x.fat)}kg</p><p class="body-record-calculated">체지방률 ${metrics.bodyFatPercent===null?'-':metrics.bodyFatPercent.toFixed(1)+'% ('+metrics.bodyFatStatus+')'} · BMI ${metrics.bmi===null?'-':metrics.bmi.toFixed(1)+' ('+metrics.bmiStatus+')'}</p></article>`;
+  return `<article class="item-card body-record-card"><div class="body-record-head"><h4>${dateText(x.date)}</h4><div class="body-record-actions"><button type="button" class="body-edit-btn" data-body-edit="${index}">수정</button><button type="button" class="body-delete-btn" data-body-delete="${index}">삭제</button></div></div><p>만 ${fmt(x.age)}세 · 키 ${fmt(height)}cm · 체중 ${fmt(x.weight)}kg · 골격근량 ${fmt(x.muscle)}kg · 체지방량 ${fmt(x.fat)}kg</p><p class="body-record-calculated">체지방률 ${metrics.bodyFatPercent===null?'-':metrics.bodyFatPercent.toFixed(1)+'% ('+metrics.bodyFatStatus+')'} · BMI ${metrics.bmi===null?'-':metrics.bmi.toFixed(1)+' ('+metrics.bmiStatus+')'}</p></article>`;
  }).join(''):'아직 측정 기록이 없습니다.';
  document.querySelectorAll('[data-body-edit]').forEach(button=>button.onclick=()=>beginBodyEdit(Number(button.dataset.bodyEdit)));
  document.querySelectorAll('[data-body-delete]').forEach(button=>button.onclick=async()=>{
@@ -548,6 +552,30 @@ async function renderBody(){
   await renderBody();
   toast('선택한 신체 기록을 삭제했습니다.');
  });
+}
+function cidReference(entry){
+ const h=Number(entry.height); if(!Number.isFinite(h)||h<=0)return null;
+ const standardWeight=(h/100)**2*22;
+ const standardMuscle=standardWeight*0.45;
+ const standardFat=standardWeight*0.15;
+ return {weight:{standard:standardWeight,min:standardWeight*.85,max:standardWeight*1.15},muscle:{standard:standardMuscle,min:standardMuscle*.90,max:standardMuscle*1.10},fat:{standard:standardFat,min:standardFat*.80,max:standardFat*1.60}};
+}
+function cidStatus(value,range){if(value==null||!range)return '정보 부족';return value<range.min?'표준 이하':value>range.max?'표준 이상':'표준'}
+function cidShape(entry,ref){const v=[entry.weight/ref.weight.standard*100,entry.muscle/ref.muscle.standard*100,entry.fat/ref.fat.standard*100];if(v.some(x=>!Number.isFinite(x)))return '판정 불가';if(v[1]<v[0]&&v[1]<v[2])return 'C형 · 근육 부족형';if(v[1]>v[0]&&v[1]>v[2])return 'D형 · 근육 발달형';return 'I형 · 균형형'}
+function cidBarRow(label,value,range){const pct=value/range.standard*100,left=20,width=270,x=left+Math.max(0,Math.min(200,pct))/200*width,n1=range.min/range.standard*100,n2=range.max/range.standard*100,bx=left+n1/200*width,bw=(n2-n1)/200*width,status=cidStatus(value,range),color=status==='표준'?'#A3E635':status==='표준 이상'?'#38BDF8':'#F59E0B';return '<div class="cid-row"><div class="cid-row-head"><b>'+label+'</b><strong>'+Number(value).toFixed(1)+'kg</strong></div><div class="cid-track"><span class="cid-band" style="left:'+bx/310*100+'%;width:'+bw/310*100+'%"></span><span class="cid-marker" style="left:'+x/310*100+'%;background:'+color+'"></span></div><div class="cid-row-foot"><span>표준 이하</span><span>표준 '+range.min.toFixed(1)+'~'+range.max.toFixed(1)+'kg</span><b style="color:'+color+'">'+status+'</b></div></div>'}
+function trendSvg(points){if(points.length<2)return '<div class="analysis-empty">비교할 측정 기록이 2개 이상 필요합니다.</div>';const vals=points.map(p=>p.value),min=Math.min(...vals),max=Math.max(...vals),span=max-min||1,coords=points.map((p,i)=>[24+i*272/(points.length-1),112-(p.value-min)/span*86]),poly=coords.map(p=>p.join(',')).join(' ');return '<svg class="trend-svg" viewBox="0 0 320 140" role="img" aria-label="날짜별 변화 그래프"><line x1="24" y1="112" x2="296" y2="112" stroke="currentColor" opacity=".18"/><polyline points="'+poly+'" fill="none" stroke="#A3E635" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+coords.map((p,i)=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="#A3E635"><title>'+points[i].date+': '+points[i].value.toFixed(1)+'</title></circle>').join('')+'<g fill="currentColor" opacity=".65" font-size="9"><text x="24" y="132">'+points[0].date.slice(5)+'</text><text x="296" y="132" text-anchor="end">'+points[points.length-1].date.slice(5)+'</text></g></svg>'}
+let analysisPeriod='all',analysisSelectedId='';
+async function renderAnalysis(){
+ const all=(await get('body')).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+ const now=new Date();let start=null;if(analysisPeriod!=='all'){start=new Date(now);start.setMonth(start.getMonth()-Number(analysisPeriod))}
+ const rows=all.filter(x=>!start||new Date((x.date||'')+'T00:00:00')>=start),latest=rows[rows.length-1],selected=all.find(x=>x.id===analysisSelectedId)||latest;if(selected)analysisSelectedId=selected.id;
+ const metrics=[['체중','weight','kg'],['골격근량','muscle','kg'],['체지방량','fat','kg'],['체지방률','bf','%'],['BMI','bmi','']];
+ const chartHtml=metrics.map(([label,key,unit])=>{const pts=rows.map(x=>{const m=bodyMetrics(x.height,x.weight,x.fat);return {date:x.date,value:key==='bf'?m.bodyFatPercent:key==='bmi'?m.bmi:x[key]}}).filter(x=>Number.isFinite(Number(x.value)));const last=pts[pts.length-1];return '<article class="analysis-card"><div class="analysis-card-head"><b>'+label+'</b><strong>'+(last?Number(last.value).toFixed(1)+unit:'—')+'</strong></div>'+trendSvg(pts)+'</article>'}).join('');
+ let cidHtml='<div class="analysis-empty">신체 기록이 없습니다. 신체 탭에서 측정값을 입력하세요.</div>';
+ if(selected){const ref=cidReference(selected),age=selected.age==null?'나이 미입력':'만 '+selected.age+'세',valid=ref&&['weight','muscle','fat'].every(k=>Number.isFinite(Number(selected[k])));if(valid){cidHtml='<div class="cid-meta"><b>'+dateText(selected.date)+'</b><span>'+age+' · '+Number(selected.height).toFixed(1)+'cm</span></div><div class="cid-shape"><strong>'+cidShape(selected,ref)+'</strong><small>체중 · 골격근량 · 체지방량 막대 끝점을 연결한 형태</small></div>'+cidBarRow('체중',Number(selected.weight),ref.weight)+cidBarRow('골격근량',Number(selected.muscle),ref.muscle)+cidBarRow('체지방량',Number(selected.fat),ref.fat)+'<p class="hint">표준 범위는 남성 기준 신장 기반 추정치입니다. 체중 85~115%, 골격근량 90~110%, 체지방량 80~160% 기준을 적용했습니다. 골격근량 표준값은 제조사의 기기별 원자료가 공개되지 않아 표준체중의 45%로 추정한 참고값이며, 공식 인바디 판정과 동일하지 않습니다. 만 나이는 측정 당시 정보로 보존합니다. 공개된 CID 표준 구간은 나이별이 아니라 성별·신장 기준입니다.</p>'}else{cidHtml='<div class="analysis-empty">CID를 계산하려면 선택한 기록에 나이, 키, 체중, 골격근량, 체지방량이 필요합니다.<br>기존 기록은 신체 탭에서 수정해 나이를 입력하세요.</div>'}}
+ const selectHtml=all.length?'<label class="field-label" for="cidRecordSelect">CID 측정 기록 선택</label><select id="cidRecordSelect" class="input">'+all.slice().reverse().map(x=>'<option value="'+escapeHTML(x.id)+'" '+(selected&&selected.id===x.id?'selected':'')+'>'+dateText(x.date)+' · 만 '+(x.age??'미입력')+'세</option>').join('')+'</select>':'';
+ $('#analysisContent').innerHTML='<div class="analysis-period">'+[['1','1개월'],['3','3개월'],['6','6개월'],['all','전체']].map(([v,t])=>'<button class="period-btn '+(analysisPeriod===v?'active':'')+'" data-period="'+v+'">'+t+'</button>').join('')+'</div><div class="section-head compact"><h3>신체 변화 추이</h3><span class="muted">'+rows.length+'회 측정</span></div><div class="analysis-grid">'+chartHtml+'</div><div class="section-head"><h3>CID 체성분 분석</h3></div><div class="form-card cid-card">'+selectHtml+cidHtml+'</div>';
+ document.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{analysisPeriod=b.dataset.period;renderAnalysis()});const sel=$('#cidRecordSelect');if(sel)sel.onchange=()=>{analysisSelectedId=sel.value;renderAnalysis()};
 }
 async function exportData(){const data={version:1,exportedAt:new Date().toISOString(),logs:await get('logs'),body:await get('body'),customExercises:await get('customExercises'),settings:{weightUnit}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`workout-log-backup-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 내보냈습니다.')}
 async function importData(file){try{const data=JSON.parse(await file.text());if(!Array.isArray(data.logs)||!Array.isArray(data.body))throw Error();if(!confirm('가져온 데이터로 현재 기록을 교체할까요?'))return;await put('logs',data.logs);await put('body',data.body);if(Array.isArray(data.customExercises))await put('customExercises',data.customExercises);if(data.settings?.weightUnit){weightUnit=data.settings.weightUnit==='lbs'?'lbs':'kg';await put('settings',{weightUnit});$('#recordWeightUnit').value=weightUnit;}await refreshCustom();renderCategories();renderLibrary();toast('백업 데이터를 복원했습니다.');renderHome()}catch{toast('올바른 백업 파일이 아닙니다.')}}
