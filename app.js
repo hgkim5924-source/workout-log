@@ -35,6 +35,27 @@ async function migrateAndReconcileDBs(){
  }
 }
 async function openDB(){db=await openNamedDB(DB);backupDb=await openNamedDB(LEGACY_DB);await migrateAndReconcileDBs();return db}
+
+async function protectLocalStorage(){
+ const status=document.querySelector('#storageProtectionStatus');
+ try{
+  if(!navigator.storage||typeof navigator.storage.persist!=='function'){
+   if(status)status.textContent='이 브라우저는 저장공간 보호 요청을 지원하지 않습니다. 정기적으로 백업 파일을 보관하세요.';
+   return false;
+  }
+  let persisted=typeof navigator.storage.persisted==='function'?await navigator.storage.persisted():false;
+  if(!persisted)persisted=await navigator.storage.persist();
+  if(status)status.textContent=persisted
+   ?'브라우저에 저장공간 영구 보존을 요청했고 승인되었습니다. 단, 사용자가 사이트 데이터를 직접 삭제하면 기록도 삭제될 수 있으므로 백업 파일도 보관하세요.'
+   :'브라우저가 저장공간 영구 보존을 승인하지 않았습니다. 설정에서 사이트 데이터가 삭제되지 않도록 하고 백업 파일을 별도로 보관하세요.';
+  return persisted;
+ }catch(error){
+  if(status)status.textContent='저장공간 보호 상태를 확인하지 못했습니다. 백업 파일을 별도로 보관하세요.';
+  console.warn('WORKOUT LOG storage persistence:',error);
+  return false;
+ }
+}
+
 async function get(key){
  const [primary,backup]=await Promise.all([readDBValue(db,key),readDBValue(backupDb,key)]);
  const value=mergeSavedValues(String(key),primary,backup);
@@ -890,4 +911,4 @@ async function importData(file){try{const data=JSON.parse(await file.text());if(
 $('#recordWeightUnit').onchange=async e=>{applyWeightUnit(e.target.value);await put('settings',{weightUnit});toast(`운동 기록 단위를 ${weightUnit}로 변경했습니다.`)};
 $('#backupBtn').onclick=exportData;$('#exportBtn').onclick=exportData;$('#importFile').onchange=e=>e.target.files[0]&&importData(e.target.files[0]);$('#clearBtn').onclick=async()=>{if(confirm('모든 운동 및 신체 기록을 영구 삭제할까요?')){await put('logs',[]);await put('body',[]);toast('모든 기록을 삭제했습니다.');renderHome()}};
 
-(async()=>{db=await openDB();await cleanStoredBodyThresholds();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#recordWeightUnit').value=weightUnit;await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
+(async()=>{db=await openDB();await protectLocalStorage();await cleanStoredBodyThresholds();const savedSettings=await get('settings');weightUnit=savedSettings&&savedSettings.weightUnit==='lbs'?'lbs':'kg';$('#recordWeightUnit').value=weightUnit;await refreshCustom();renderCategories();renderLibrary();renderDetail();renderHome();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});})();
