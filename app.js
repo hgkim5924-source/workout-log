@@ -699,9 +699,9 @@ function cidReference(entry){
  const idealPBF=sex==='male'?.15:.23;
  const standardWeight=(h/100)**2*standardBMI;
  const standardFFM=standardWeight*(sex==='male'?.85:.77);
- // Whole-body skeletal muscle / adipose-tissue-free-mass ratios from MRI study:
- // men 0.528, women 0.473. This is an app estimate, not InBody's proprietary SMM equation.
- const muscleToFFM=sex==='male'?.528:.473;
+ // Calibrated against the user's InBody report: male standard SMM is approximately
+ // 56% of standard FFM (29.2–35.7 kg range at 176 cm). Female remains an estimate.
+ const muscleToFFM=sex==='male'?.56:.50;
  const standardSMM=standardFFM*muscleToFFM;
  const standardBFM=standardWeight*idealPBF;
  return {
@@ -733,26 +733,26 @@ function cidShape(entry,ref){
  if(ratios.muscle>ratios.weight&&ratios.muscle>ratios.fat)return 'D형 패턴 · 근육 발달형';
  return '혼합형 · 세부 지표 확인';
 }
-function cidGaugeRow(label,value,unit,rangeMin,rangeMax,statusText){
- const n=Number(value),low=Number(rangeMin),high=Number(rangeMax);
- if(!Number.isFinite(n)||!Number.isFinite(low)||!Number.isFinite(high)||high<=low){
+function cidGaugeRow(label,value,unit,rangeMin,rangeMax,statusText,standardValue){
+ const n=Number(value),low=Number(rangeMin),high=Number(rangeMax),standard=Number(standardValue);
+ if(!Number.isFinite(n)||!Number.isFinite(low)||!Number.isFinite(high)||!Number.isFinite(standard)||standard<=0||high<=low){
   return '<article class="cid-gauge-row"><div class="cid-gauge-head"><strong>'+label+'</strong><span>측정값 확인 필요</span></div></article>';
  }
- const rawMax=Math.max(high*1.35,n*1.15,high+1);
- const step=rawMax<=20?2:rawMax<=50?5:rawMax<=100?10:20;
- const axisMax=Math.ceil(rawMax/step)*step;
- const clamp=v=>Math.max(0,Math.min(100,v/axisMax*100));
- const bandLeft=clamp(low),bandRight=clamp(high),marker=clamp(n);
+ // InBody-style normalized scale: each measurement is shown as a percentage of its standard value.
+ const minAxis=60,maxAxis=180,ratio=n/standard*100;
+ const clamp=v=>Math.max(0,Math.min(100,(v-minAxis)/(maxAxis-minAxis)*100));
+ const bandLeft=clamp(low/standard*100),bandRight=clamp(high/standard*100),marker=clamp(ratio);
  const format=v=>Number(v).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1});
  const tone=['표준','정상'].includes(statusText)?'normal':/(낮음|이하|저체중)/.test(statusText)?'low':'high';
- const ticks=[0,.25,.5,.75,1].map(p=>'<span>'+format(axisMax*p)+'</span>').join('');
+ const ticks=[60,90,120,150,180].map(v=>'<span>'+v+'</span>').join('');
  return '<article class="cid-gauge-row">'+
-  '<div class="cid-gauge-head"><div class="cid-gauge-name"><strong>'+label+'</strong><small>정상 범위 '+format(low)+'–'+format(high)+' '+unit+'</small></div>'+
+  '<div class="cid-gauge-head"><div class="cid-gauge-name"><strong>'+label+'</strong><small>표준 범위 '+format(low)+'–'+format(high)+' '+unit+'</small></div>'+
   '<div class="cid-gauge-result"><b>'+format(n)+' '+unit+'</b><span class="cid-status '+tone+'">'+statusText+'</span></div></div>'+
-  '<div class="cid-gauge-track" role="img" aria-label="'+label+' '+format(n)+' '+unit+', 정상 범위 '+format(low)+'에서 '+format(high)+' '+unit+'">'+
+  '<div class="cid-gauge-track cid-inbody-track" role="img" aria-label="'+label+' '+format(n)+' '+unit+', 표준 대비 '+format(ratio)+'퍼센트">'+
    '<span class="cid-normal-band" style="left:'+bandLeft+'%;width:'+Math.max(0,bandRight-bandLeft)+'%"></span>'+
    '<span class="cid-value-marker" style="left:'+marker+'%"></span></div>'+
   '<div class="cid-gauge-axis">'+ticks+'</div>'+
+  '<div class="cid-gauge-zones"><span>표준 이하</span><span>표준</span><span>표준 이상</span></div>'+
  '</article>';
 }
 
@@ -846,13 +846,13 @@ async function renderAnalysis(){
    cidHtml='<div class="cid-meta"><b>'+dateText(selected.date)+'</b><span>'+(selected.sex==='male'?'남성':'여성')+' · '+age+' · '+Number(selected.height).toFixed(1)+'cm</span></div>'+
    '<div class="cid-shape cid-shape-summary"><span class="cid-shape-kicker">CID BODY TYPE</span><strong>'+cidShape(selected,ref)+'</strong><small>실제 측정값을 항목별 정상 범위와 비교한 참고 결과입니다.</small></div>'+
    '<section class="cid-analysis-section"><div class="cid-analysis-title"><b>근육·지방 분석</b><span>MUSCLE-FAT ANALYSIS</span></div>'+
-   cidGaugeRow('체중',Number(selected.weight),'kg',ref.weight.min,ref.weight.max,cidStatus(Number(selected.weight),ref.weight))+
-   cidGaugeRow('골격근량',Number(selected.muscle),'kg',ref.muscle.min,ref.muscle.max,cidStatus(Number(selected.muscle),ref.muscle))+
-   cidGaugeRow('체지방량',Number(selected.fat),'kg',ref.fat.min,ref.fat.max,cidStatus(Number(selected.fat),ref.fat))+'</section>'+
+   cidGaugeRow('체중',Number(selected.weight),'kg',ref.weight.min,ref.weight.max,cidStatus(Number(selected.weight),ref.weight),ref.weight.standard)+
+   cidGaugeRow('골격근량',Number(selected.muscle),'kg',ref.muscle.min,ref.muscle.max,cidStatus(Number(selected.muscle),ref.muscle),ref.muscle.standard)+
+   cidGaugeRow('체지방량',Number(selected.fat),'kg',ref.fat.min,ref.fat.max,cidStatus(Number(selected.fat),ref.fat),ref.fat.standard)+'</section>'+
    '<section class="cid-analysis-section obesity"><div class="cid-analysis-title"><b>비만 분석</b><span>OBESITY ANALYSIS</span></div>'+
    cidGaugeRow('BMI',composition.bmi,'kg/m²',bmiRange[0],bmiRange[1],composition.bmiStatus||'측정값 없음')+
    cidGaugeRow('체지방률',composition.bodyFatPercent,'%',pbfRange[0],pbfRange[1],composition.bodyFatStatus||'측정값 없음')+'</section>'+
-   '<p class="hint cid-method-note">정상 구간은 각 항목의 기준을 실제 단위(kg, kg/m², 체지방률)로 환산해 표시합니다. 파란색 구간이 정상 범위이며 주황색 선이 현재 측정값입니다. 골격근량 기준은 표준 제지방량과 MRI 연구의 근육/제지방 비율을 이용한 앱 자체 추정치로, InBody 제조사의 공식 산식과 동일하지 않습니다. 따라서 CID 분류는 참고용 패턴 분석이며 실제 InBody 결과와 다를 수 있습니다.</p>';
+   '<p class="hint cid-method-note">근육·지방 그래프는 인바디 검사지처럼 각 항목의 표준값을 100%로 환산한 상대 눈금(60~180%)을 사용합니다. 파란색 구간은 표준 범위, 주황색 선은 측정값입니다. 남성 골격근량 기준은 사용자가 제공한 176cm 인바디 검사지의 표준 범위(29.2~35.7kg)에 맞춰 표준 제지방량의 약 56%로 보정했습니다. 여성 기준은 추정치이며, 이 앱은 인바디 기기의 공식 산식을 재현하지 않습니다. CID 유형은 세 항목의 표준 대비 분포를 요약한 참고 지표입니다.</p>';
   }
  }
  const selectHtml=all.length?'<label class="field-label" for="cidRecordSelect">분석할 측정 기록</label><select id="cidRecordSelect" class="input">'+all.slice().reverse().map(x=>'<option value="'+escapeHTML(x.id)+'" '+(selected&&selected.id===x.id?'selected':'')+'>'+dateText(x.date)+' · '+(x.sex==='male'?'남성':x.sex==='female'?'여성':'성별 미입력')+' · 만 '+(x.age??'미입력')+'세</option>').join('')+'</select>':'';
