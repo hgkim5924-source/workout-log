@@ -535,3 +535,9 @@ body{padding-top:calc(env(safe-area-inset-top) + 16px)}
 .ref-card span{font-size:12px;font-weight:800}
 .ref-card small{font-size:9px;color:var(--muted);line-height:1.5}
 @media(max-width:360px){.ref-grid{grid-template-columns:1fr}}
+
+
+/* v48: prevent native date input from overflowing narrow mobile form cards */
+#bodydata .form-card{min-width:0}
+#bodyDate{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px;font-size:16px}
+#bodydata .form-card input,#bodydata .form-card select{min-width:0;max-width:100%}
