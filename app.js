@@ -523,6 +523,8 @@ $('#saveBody').onclick=async()=>{
   fat:bodyNumber('fat')
  };
  if(entry.age===null||entry.height===null){toast('분석 기준을 위해 나이(만)와 키를 입력하세요.');return;}
+  if(!['male','female'].includes(entry.sex)){toast('성별을 선택하세요.');return;}
+  if((entry.smmMin===null)!==(entry.smmMax===null)||(entry.smmMin!==null&&(entry.smmMin<=0||entry.smmMax<=entry.smmMin))){toast('골격근량 표준 범위의 하한과 상한을 모두 올바르게 입력하세요.');return;}
   if(entry.weight===null&&entry.muscle===null&&entry.fat===null){
   toast('체중, 골격근량, 체지방량 중 하나 이상 입력하세요.');
   return;
@@ -624,7 +626,7 @@ function cidShapeSvg(entry,ref){
  const x=k=>x0+Math.max(0,Math.min(200,r[k]))/200*w;
  const rows=[['weight','체중',ref.weight],['muscle','골격근량',ref.muscle],['fat','체지방량',ref.fat]];
  const backgrounds=rows.map(([k,label,range])=>{
-  const y=ys[k],min=x0+range.min/r[k.replace('weight','weight').replace('muscle','muscle').replace('fat','fat')].standard*0;
+  const y=ys[k];
   const a=range.min/range.standard*100;
   const b=range.max/range.standard*100;
   return '<text x="0" y="'+(y+4)+'" fill="currentColor" font-size="10">'+label+'</text><line x1="'+x0+'" y1="'+y+'" x2="'+(x0+w)+'" y2="'+y+'" stroke="currentColor" opacity=".18" stroke-width="7" stroke-linecap="round"/><rect x="'+(x0+a/200*w)+'" y="'+(y-5)+'" width="'+((b-a)/200*w)+'" height="10" rx="4" fill="#A3E635" opacity=".24"/><line x1="'+x0+'" y1="'+y+'" x2="'+x(k)+'" y2="'+y+'" stroke="#A3E635" stroke-width="5" stroke-linecap="round"/>';
