@@ -1,12 +1,52 @@
-const DB='workout-log-local', STORE='data';
+const DB='workout-log-vault', LEGACY_DB='workout-log-local', STORE='data';
 window.BODY_PATHS=null;
 
-let db;
+let db, backupDb;
 const $=s=>document.querySelector(s);
 const today=()=>new Date().toISOString().slice(0,10);
-function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-function get(key){return new Promise((res,rej)=>{const r=db.transaction(STORE).objectStore(STORE).get(key);r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
-function put(key,value){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(value,key);t.oncomplete=()=>res();t.onerror=()=>rej(t.error||new Error('IndexedDB write failed'));t.onabort=()=>rej(t.error||new Error('IndexedDB transaction aborted'))})}
+function openNamedDB(name){return new Promise((resolve,reject)=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(new Error(name+' database open blocked'))})}
+function readDBValue(database,key){return new Promise((resolve,reject)=>{try{const r=database.transaction(STORE,'readonly').objectStore(STORE).get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)}catch(error){reject(error)}})}
+function writeDBValue(database,key,value){return new Promise((resolve,reject)=>{try{const tx=database.transaction(STORE,'readwrite');tx.objectStore(STORE).put(value,key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||new Error('IndexedDB write failed'));tx.onabort=()=>reject(tx.error||new Error('IndexedDB transaction aborted'))}catch(error){reject(error)}})}
+function readDBEntries(database){return new Promise((resolve,reject)=>{try{const tx=database.transaction(STORE,'readonly'),store=tx.objectStore(STORE),items=[];const request=store.openCursor();request.onsuccess=()=>{const cursor=request.result;if(cursor){items.push([cursor.key,cursor.value]);cursor.continue()}else resolve(items)};request.onerror=()=>reject(request.error)}catch(error){reject(error)}})}
+function mergeSavedValues(key,primary,backup){
+ if(primary===undefined)return backup;
+ if(backup===undefined)return primary;
+ if(Array.isArray(primary)&&Array.isArray(backup)){
+  const merged=primary.slice(),seen=new Set(merged.map((item,index)=>item&&typeof item==='object'?(item.id?String(item.id):JSON.stringify(item)):'value:'+index));
+  for(const item of backup){const identity=item&&typeof item==='object'?(item.id?String(item.id):JSON.stringify(item)):null;if(identity===null||!seen.has(identity)){merged.push(item);if(identity!==null)seen.add(identity)}}
+  if(key==='logs'||key==='body')merged.sort((a,b)=>String(b?.date||'').localeCompare(String(a?.date||'')));
+  return merged;
+ }
+ if(primary&&backup&&typeof primary==='object'&&typeof backup==='object'&&!Array.isArray(primary))return {...backup,...primary};
+ return primary;
+}
+async function migrateAndReconcileDBs(){
+ const entries=await readDBEntries(backupDb);
+ for(const [key,backupValue] of entries){
+  const primaryValue=await readDBValue(db,key);
+  const merged=mergeSavedValues(String(key),primaryValue,backupValue);
+  if(primaryValue===undefined||JSON.stringify(merged)!==JSON.stringify(primaryValue))await writeDBValue(db,key,merged);
+ }
+ const primaryEntries=await readDBEntries(db);
+ for(const [key,value] of primaryEntries){
+  const backupValue=await readDBValue(backupDb,key);
+  const merged=mergeSavedValues(String(key),value,backupValue);
+  if(backupValue===undefined||JSON.stringify(merged)!==JSON.stringify(backupValue))await writeDBValue(backupDb,key,merged);
+ }
+}
+async function openDB(){db=await openNamedDB(DB);backupDb=await openNamedDB(LEGACY_DB);await migrateAndReconcileDBs();return db}
+async function get(key){
+ const [primary,backup]=await Promise.all([readDBValue(db,key),readDBValue(backupDb,key)]);
+ const value=mergeSavedValues(String(key),primary,backup);
+ if(value!==undefined&&(primary===undefined||JSON.stringify(value)!==JSON.stringify(primary)))await writeDBValue(db,key,value);
+ if(value!==undefined&&(backup===undefined||JSON.stringify(value)!==JSON.stringify(backup)))await writeDBValue(backupDb,key,value);
+ return value===undefined?[]:value;
+}
+async function put(key,value){
+ const results=await Promise.allSettled([writeDBValue(db,key,value),writeDBValue(backupDb,key,value)]);
+ if(results.every(result=>result.status==='rejected'))throw new Error('두 저장소 모두 기록 저장에 실패했습니다.');
+ if(results.some(result=>result.status==='rejected'))console.error('WORKOUT LOG: 한쪽 백업 저장소 기록 실패',results);
+}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2100)}
 function dateText(d){return new Date(d+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'})}
 function go(tab){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===tab));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));window.scrollTo(0,0);if(tab==='home')renderHome();if(tab==='history')renderHistory();if(tab==='bodydata')renderBody();if(tab==='analysis')renderAnalysis()}
