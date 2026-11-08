@@ -423,17 +423,39 @@ function bodyNumber(id){
  const value=Number(raw);
  return Number.isFinite(value)?value:null;
 }
+function bodyFatStatus(value){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return null;
+ const v=Number(value);
+ if(v<8)return '낮음';
+ if(v<20)return '정상';
+ if(v<25)return '높은 편';
+ return '비만 범위';
+}
+function bmiStatus(value){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return null;
+ const v=Number(value);
+ if(v<18.5)return '저체중';
+ if(v<23)return '정상';
+ if(v<25)return '비만 전 단계';
+ if(v<30)return '1단계 비만';
+ if(v<35)return '2단계 비만';
+ return '3단계 비만';
+}
 function bodyMetrics(height,weight,fat){
  const h=Number(height),w=Number(weight),f=Number(fat);
+ const bodyFatPercent=fat!==null&&fat!==undefined&&fat!==''&&Number.isFinite(w)&&w>0&&Number.isFinite(f)&&f>=0?f/w*100:null;
+ const bmi=Number.isFinite(h)&&h>0&&Number.isFinite(w)&&w>0?w/((h/100)*(h/100)):null;
  return {
-  bodyFatPercent:fat!==null&&fat!==undefined&&fat!==''&&Number.isFinite(w)&&w>0&&Number.isFinite(f)&&f>=0?f/w*100:null,
-  bmi:Number.isFinite(h)&&h>0&&Number.isFinite(w)&&w>0?w/((h/100)*(h/100)):null
+  bodyFatPercent,
+  bmi,
+  bodyFatStatus:bodyFatStatus(bodyFatPercent),
+  bmiStatus:bmiStatus(bmi)
  };
 }
 function updateBodyCalculations(){
  const metrics=bodyMetrics(bodyNumber('height'),bodyNumber('weight'),bodyNumber('fat'));
- $('#bodyFatPreview').textContent=metrics.bodyFatPercent===null?'—':metrics.bodyFatPercent.toFixed(1)+'%';
- $('#bmiPreview').textContent=metrics.bmi===null?'—':metrics.bmi.toFixed(1);
+ $('#bodyFatPreview').textContent=metrics.bodyFatPercent===null?'—':metrics.bodyFatPercent.toFixed(1)+'% ('+metrics.bodyFatStatus+')';
+ $('#bmiPreview').textContent=metrics.bmi===null?'—':metrics.bmi.toFixed(1)+' ('+metrics.bmiStatus+')';
 }
 ['height','weight','muscle','fat'].forEach(id=>$('#'+id).addEventListener('input',updateBodyCalculations));
 
@@ -512,7 +534,7 @@ async function renderBody(){
   const height=Number(x.height)>0?Number(x.height):latestHeight;
   const metrics=bodyMetrics(height,x.weight,x.fat);
   const fmt=value=>value===null||value===undefined||!Number.isFinite(Number(value))?'-':Number(value).toLocaleString('ko-KR',{maximumFractionDigits:1});
-  return `<article class="item-card body-record-card"><div class="body-record-head"><h4>${dateText(x.date)}</h4><div class="body-record-actions"><button type="button" class="body-edit-btn" data-body-edit="${index}">수정</button><button type="button" class="body-delete-btn" data-body-delete="${index}">삭제</button></div></div><p>키 ${fmt(height)}cm · 체중 ${fmt(x.weight)}kg · 골격근량 ${fmt(x.muscle)}kg · 체지방량 ${fmt(x.fat)}kg</p><p class="body-record-calculated">체지방률 ${metrics.bodyFatPercent===null?'-':metrics.bodyFatPercent.toFixed(1)+'%'} · BMI ${metrics.bmi===null?'-':metrics.bmi.toFixed(1)}</p></article>`;
+  return `<article class="item-card body-record-card"><div class="body-record-head"><h4>${dateText(x.date)}</h4><div class="body-record-actions"><button type="button" class="body-edit-btn" data-body-edit="${index}">수정</button><button type="button" class="body-delete-btn" data-body-delete="${index}">삭제</button></div></div><p>키 ${fmt(height)}cm · 체중 ${fmt(x.weight)}kg · 골격근량 ${fmt(x.muscle)}kg · 체지방량 ${fmt(x.fat)}kg</p><p class="body-record-calculated">체지방률 ${metrics.bodyFatPercent===null?'-':metrics.bodyFatPercent.toFixed(1)+'% ('+metrics.bodyFatStatus+')'} · BMI ${metrics.bmi===null?'-':metrics.bmi.toFixed(1)+' ('+metrics.bmiStatus+')'}</p></article>`;
  }).join(''):'아직 측정 기록이 없습니다.';
  document.querySelectorAll('[data-body-edit]').forEach(button=>button.onclick=()=>beginBodyEdit(Number(button.dataset.bodyEdit)));
  document.querySelectorAll('[data-body-delete]').forEach(button=>button.onclick=async()=>{
